@@ -1,0 +1,22 @@
+name: Bug, feature request, or question
+description: Report an issue, request a feature, or ask a question.
+labels: ["needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tip: run `shotstack feedback` from your terminal to pre-fill this form with your environment and a sanitised dossier of your last 5 CLI invocations. Review the pre-filled body in your browser before submitting.
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Describe the bug, feature request, or question. If you used `shotstack feedback`, the dossier will appear here automatically.
+      placeholder: |
+        ## Environment
+        - Shotstack CLI: 0.1.x
+        - OS: ...
+
+        ## What I expected vs what happened
+        ...
+    validations:
+      required: true

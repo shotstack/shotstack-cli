@@ -1,0 +1,108 @@
+# Troubleshooting
+
+Common errors and the fix for each. If your error isn't here, run `shotstack feedback` to file a pre-filled GitHub issue with the render UUID attached — engineers can find server-side state in seconds.
+
+## Contents
+
+- "Unknown property: alignment" / wrong property names
+- "Invalid option: expected one of top|middle|bottom"
+- Video looks stretched / squished after rendering
+- "Font not found"
+- Captions cover the whole frame
+- Timeline renders but layers are wrong
+- "Invalid asset URL"
+- "Render failed" with no other detail
+- Render takes much longer than expected
+- Stage credits exhausted
+
+## "Unknown property: alignment" (and similar)
+
+You used a property name from CSS or HTML instinct — `alignment`, `font.name`, `duration` — instead of the Shotstack name.
+
+**Fix:** the spec uses these exact names:
+
+| You'd guess (wrong) | API uses (right) |
+|---|---|
+| `alignment` | `align` |
+| `font.name` | `font.family` |
+| `duration` | `length` |
+| `transitions: [...]` (array) | `transition: { in, out }` (object) |
+
+Always check <https://shotstack.io/docs/api/api.bundled.json> (JSON Schema) or <https://shotstack.io/docs/guide/llms-full.txt> before composing timeline JSON. Don't guess from CSS conventions.
+
+## "Invalid option: expected one of top|middle|bottom"
+
+You set `align.vertical` to `"center"` (CSS instinct). Shotstack's vertical enum is `top | middle | bottom`. Horizontal is `left | center | right` (the word "center" works there, just not for vertical).
+
+**Fix:** use `"middle"` for vertical centering.
+
+## Video looks stretched / squished after rendering
+
+You used `fit: "cover"` from CSS instinct expecting it to scale-and-crop maintaining aspect ratio. Shotstack's `cover` does the opposite — it STRETCHES the asset to fill the viewport without maintaining aspect ratio.
+
+The Shotstack `fit` enum is **inverted from CSS**:
+
+| Shotstack value | Behaviour |
+|---|---|
+| `crop` (default) | Scale to fill, **maintaining aspect ratio**, crop excess. This is what CSS calls `object-fit: cover`. |
+| `cover` | Stretch to fill, ignoring aspect ratio. This is what CSS calls `object-fit: fill`. |
+| `contain` | Fit entirely within viewport, maintaining aspect ratio (letterbox). |
+| `none` | No scaling. |
+
+**Fix:** use `fit: "crop"` (or omit `fit` — `crop` is the default) for the typical "scale and crop" behaviour you'd expect from CSS `object-fit: cover`.
+
+## "Font not found"
+
+You used a font name that isn't in the built-in list and didn't load it via `timeline.fonts[]`.
+
+**Fix:** add the font URL to `timeline.fonts[]` and use the file basename as `family`. See `references/fonts.md`. If you really need a system font, use `Roboto` (built-in) as a substitute.
+
+## Captions cover the whole frame
+
+A `rich-caption` clip without `width`, `height`, and `fit: "none"` defaults to filling the entire output.
+
+**Fix:** use one of the five named presets in `references/rich-caption.md` (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) which include the right dimensions, or set `width`/`height`/`fit: "none"` explicitly on your clip.
+
+## Timeline renders but layers are wrong
+
+You assumed `tracks[0]` was the bottom layer.
+
+**Fix:** reverse the track array. `tracks[0]` is the TOP layer; the last track is the BOTTOM. Captions and overlays go in early tracks; backgrounds go in late tracks. See `references/timeline.md`.
+
+## "Invalid asset URL"
+
+The `src` is not a public HTTPS URL, or it's a `data:` URI, or it's a local path, or the URL needs auth that isn't included.
+
+**Fix:** host the asset at a public HTTPS URL or use a presigned URL with credentials in the URL itself. For tests, pull from `references/asset-library.md`.
+
+## "Render failed" with no other detail
+
+`shotstack status <id> --output json` returns the full response including the error message. The `--watch` text view truncates.
+
+```sh
+shotstack status <id> --output json | jq .response.error
+```
+
+Then run `shotstack feedback` — the dossier captures the response body and the engineer can correlate against server-side logs in <30 seconds.
+
+## Render takes much longer than expected
+
+Renders containing AI-generation assets (`text-to-image`, `image-to-video`) take longer because the engine waits for the AI job to complete before rendering. Renders with very long source videos or many tracks also take longer.
+
+**Fix:** if you're iterating quickly, render with `output.resolution: "preview"` first (512×288 @ 15fps) to validate the timeline shape before spending credits on full-resolution output.
+
+## Stage credits exhausted
+
+The `stage` environment uses test credits. They reset on a regular cadence but can be exhausted if you run many renders.
+
+**Fix:** wait for the reset, or run against `--env v1` (production credits, real money). Check current credit balance at <https://dashboard.shotstack.io>.
+
+## Filing a useful bug report
+
+`shotstack feedback` opens a pre-filled GitHub issue with:
+
+- CLI version + OS
+- Last 5 invocations (sanitised — no API key, no signed URL params)
+- Render UUIDs and status responses
+
+This dossier lets engineers find the server-side render state in seconds. **Always include the render UUID** when filing — without it, debugging is "user said it didn't work" with no way to reproduce.
