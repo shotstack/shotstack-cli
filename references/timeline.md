@@ -1,6 +1,6 @@
 # Timeline conventions
 
-Detailed guide to track layering, the soundtrack vs audio distinction, and `timeline.fonts[]`. Read this when building any non-trivial timeline JSON.
+Detailed guide to track layering, the soundtrack vs audio distinction, and `timeline.fonts[]`. Read this when building any non-trivial Edit JSON.
 
 ## Contents
 
@@ -74,13 +74,7 @@ If you put the video first and the captions last, the video covers the captions 
 
 ## Soundtrack vs audio asset
 
-There are two ways to add audio. Pick the right one.
-
-| Use `timeline.soundtrack` when | Use `audio` asset when |
-|---|---|
-| One background music track for the entire timeline | Sound effects at specific times |
-| Loop or fade the music | Voiceover synced to specific clips |
-| You don't need to control timing | Multiple audio sources at different times |
+Prefer `Audio` assets — they support custom timing, keyframes, and effects, and can do everything `timeline.soundtrack` can. Use `timeline.soundtrack` only when you want a single background track spanning the whole edit.
 
 ```json
 {
@@ -94,7 +88,9 @@ There are two ways to add audio. Pick the right one.
 }
 ```
 
-Soundtrack supported `effect` values: `fadeIn`, `fadeOut`, `fadeInFadeOut`.
+`soundtrack.effect` accepts `fadeIn`, `fadeOut`, or `fadeInFadeOut`.
+
+An `audio` clip with `length: "end"` is functionally identical to `timeline.soundtrack`.
 
 ## `timeline.fonts[]` for custom fonts
 

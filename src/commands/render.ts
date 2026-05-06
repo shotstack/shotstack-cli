@@ -14,8 +14,8 @@ interface RenderResponse {
 }
 
 export const renderCommand = new Command("render")
-  .description("Submit a Shotstack timeline JSON to the render API")
-  .argument("<file>", "Path to a Shotstack timeline JSON file")
+  .description("Submit a Shotstack Edit JSON to the render API")
+  .argument("<file>", "Path to a Shotstack Edit JSON file")
   .option(`--env <name>`, `Environment: ${ENV_NAMES.join(" | ")}`)
   .option("--output <format>", "Output format: text | json", "text")
   .action(async (file: string, options: { env?: string; output: string }) => {

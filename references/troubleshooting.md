@@ -13,7 +13,7 @@ Common errors and the fix for each. If your error isn't here, run `shotstack fee
 - "Invalid asset URL"
 - "Render failed" with no other detail
 - Render takes much longer than expected
-- Stage credits exhausted
+- Credits exhausted on stage environment
 
 ## "Unknown property: alignment" (and similar)
 
@@ -28,7 +28,7 @@ You used a property name from CSS or HTML instinct — `alignment`, `font.name`,
 | `duration` | `length` |
 | `transitions: [...]` (array) | `transition: { in, out }` (object) |
 
-Always check <https://shotstack.io/docs/api/api.bundled.json> (JSON Schema) or <https://shotstack.io/docs/guide/llms-full.txt> before composing timeline JSON. Don't guess from CSS conventions.
+Always check <https://shotstack.io/docs/api/api.edit.json> (OpenAPI Schema) or <https://shotstack.io/docs/guide/llms-full.txt> before composing Edit JSON. Don't guess from CSS conventions.
 
 ## "Invalid option: expected one of top|middle|bottom"
 
@@ -91,11 +91,11 @@ Renders containing AI-generation assets (`text-to-image`, `image-to-video`) take
 
 **Fix:** if you're iterating quickly, render with `output.resolution: "preview"` first (512×288 @ 15fps) to validate the timeline shape before spending credits on full-resolution output.
 
-## Stage credits exhausted
+## Credits exhausted on stage environment
 
-The `stage` environment uses test credits. They reset on a regular cadence but can be exhausted if you run many renders.
+The `stage` environment uses no credits, but you do require a positive credit balance to make use of the sandbox.
 
-**Fix:** wait for the reset, or run against `--env v1` (production credits, real money). Check current credit balance at <https://dashboard.shotstack.io>.
+**Fix:** add more credits to your account. Check current credit balance at <https://app.shotstack.io>.
 
 ## Filing a useful bug report
 

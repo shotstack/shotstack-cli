@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { renderCommand } from "./commands/render.ts";
 import { statusCommand } from "./commands/status.ts";
 import { feedbackCommand } from "./commands/feedback.ts";
+import { previewCommand } from "./commands/preview.ts";
 import { ApiError } from "./http/client.ts";
 import { MissingApiKeyError } from "./http/auth.ts";
 import { InvalidEnvError } from "./http/env.ts";
@@ -13,6 +14,7 @@ const program = new Command()
   .version(version)
   .addCommand(renderCommand)
   .addCommand(statusCommand)
+  .addCommand(previewCommand)
   .addCommand(feedbackCommand);
 
 try {

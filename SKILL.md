@@ -4,26 +4,25 @@ description: |
   Render video and poll render status via the Shotstack API.
   Use when generating clips, building automated video pipelines, or orchestrating
   cloud video renders from a script, agent, or CI workflow.
-  NOT for: real-time streaming, live broadcasting, or in-browser editing UIs.
+  NOT for: real-time streaming, or live broadcasting.
 license: Apache-2.0
 ---
 
 # Shotstack CLI
 
-Two commands for the Shotstack video rendering API. `render` submits a timeline JSON and returns a render ID; `status` polls a render until done.
+Two commands for the Shotstack video rendering API. `render` submits an Edit JSON and returns a render ID; `status` polls a render until done.
 
 ## Authentication
 
 ```sh
-export SHOTSTACK_API_KEY=sk_...
+export SHOTSTACK_API_KEY=...
 ```
 
-Get a key at <https://dashboard.shotstack.io>. Without a key, every command exits with code 1.
+Get a key at <https://app.shotstack.io>. Without a key, every command exits with code 1.
 
 ## Environments
 
 ```
---env dev      → https://api.shotstack.io/edit/dev
 --env stage    → https://api.shotstack.io/edit/stage   (test credits, free)
 --env v1       → https://api.shotstack.io/edit/v1      (production, default)
 ```
@@ -39,26 +38,42 @@ shotstack render template.json --output json --env stage
 
 # Poll until terminal state.
 shotstack status 01ja7-x8m2k-39rzv-cmvxve --watch --env stage
-# → done  https://shotstack-api-stage-output.s3.amazonaws.com/.../out.mp4
+# → done  https://shotstack-api-stage-output.s3.amazonaws.com/.../01ja7-x8m2k-39rzv-cmvxve.mp4
 ```
 
-## Three CLI rules
+## Hand-off to a human before rendering
+
+When a human is in the loop and may want to tweak the result, prefer **`shotstack preview <file>`** over `shotstack render`. By default it opens the browser to `https://shotstack.studio/#json=<base64url>` and prints the URL — the timeline loads directly into the browser-based editor. No API call, no key, no charge. The human can play, edit, and decide whether to render — saving credits when the AI's first attempt isn't quite right.
+
+```sh
+shotstack preview template.json              # opens browser + prints URL
+shotstack preview template.json --no-open    # headless: just print the URL
+shotstack preview template.json --output json # piping: {"url":"..."}, no browser
+```
+
+On headless systems (no `xdg-open`, no `$DISPLAY`) the browser launch silently no-ops; the URL is still printed. Safe to run anywhere.
+
+Use `render` only when you're confident the JSON is final, or there's no human to review.
+
+## Four CLI rules
 
 1. **Pipe → `--output json`.** Default output is human-readable. When parsing programmatically or piping to another command, always pass `--output json`. The text format is not stable across versions.
 
 2. **Use `--watch`, not a polling loop.** `shotstack status <id> --watch` exits when the render reaches `done` (exit 0) or `failed` (exit 1). Don't write `while true; do ...; sleep 3; done`.
 
-3. **Fetch the current docs before generating timeline JSON.** The Shotstack API evolves; LLM training data is often stale. Pull <https://shotstack.io/docs/guide/llms-full.txt> for the current schema and examples before composing a timeline from scratch.
+3. **Fetch the current docs before generating Edit JSON.** The Shotstack API evolves; LLM training data is often stale. Pull <https://shotstack.io/docs/guide/llms-full.txt> for the current schema and examples before composing an Edit from scratch.
 
-## Authoring timeline JSON
+4. **Hand off to a human via `preview` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack preview` → human reviews/tweaks → render only when right.
 
-These are the conventions agents most often get wrong. Read this section before generating any timeline JSON.
+## Authoring Edit JSON
+
+These are the conventions agents most often get wrong. Read this section before generating any Edit JSON.
 
 ### Before composing JSON: check the schema
 
 Don't invent property names or enum values. The Shotstack schema is published — fetch one of these before composing JSON from scratch:
 
-- <https://shotstack.io/docs/api/api.bundled.json> — single-file JSON Schema. Machine-validatable; load it once and validate locally instead of round-tripping the API.
+- <https://shotstack.io/docs/api/api.edit.json> — single-file OpenAPI Schema. Machine-validatable; load it once and validate locally instead of round-tripping the API.
 - <https://shotstack.io/docs/api/> — interactive HTML reference. Fastest for human scanning.
 - <https://shotstack.io/docs/guide/llms-full.txt> — single-file LLM-friendly version of the full guide + reference.
 - <https://github.com/shotstack/oas-api-definition/tree/main/schemas> — raw OpenAPI YAML, source of truth.
@@ -167,7 +182,7 @@ The render API supports many asset types. Use only the **current** ones; the dep
 
 ### AI-generated assets
 
-`image-to-video` and `text-to-image` are billed per generation **even when invoked through the sandbox stage endpoint** (which is otherwise free). They are async — the render submits the AI job and waits. Renders containing AI assets take longer.
+`image-to-video`, `text-to-speech`, and `text-to-image` are billed per generation **even when invoked through the sandbox stage endpoint** (which is otherwise free). They are async — the render submits the AI job and waits. Renders containing AI assets take longer.
 
 ## Fonts
 
@@ -220,10 +235,11 @@ The `font.family` value is the **font file basename** (without `.ttf`/`.otf`).
 Authoritative sources, in order of preference:
 
 - `shotstack --help` and `shotstack <command> --help` — current CLI flag listing
-- <https://shotstack.io/docs/api/api.bundled.json> — JSON Schema for the render API (machine-validatable)
+- <https://shotstack.io/docs/api/api.edit.json> — OpenAPI Schema for the render API (machine-validatable)
 - <https://shotstack.io/docs/guide/llms-full.txt> — full API docs in LLM-friendly single file
 - <https://github.com/shotstack/oas-api-definition/tree/main/schemas> — raw OpenAPI YAML, source of truth for property names and enums
-- <https://shotstack.io/docs/api/> — interactive HTML reference
+- <https://shotstack.io/docs/guide/> — interactive HTML docs and guides
+- <https://shotstack.io/docs/api/> — interactive HTML API reference
 - <https://github.com/shotstack/shotstack-cli> — CLI source
 
 This skill ships sub-references for the gnarly bits:
