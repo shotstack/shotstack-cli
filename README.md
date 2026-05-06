@@ -50,11 +50,13 @@ SHOTSTACK_ENV=stage shotstack render template.json
 
 ### `shotstack render <file>`
 
-Submits a Shotstack Edit JSON to the render API. Returns a render ID.
+Submits a Shotstack Edit JSON to the render API. Returns a render ID. With `--watch`, polls until the render reaches a terminal state and prints the output URL — equivalent to `render` followed by `status --watch` but in one command.
 
 ```sh
 shotstack render my-template.json
 shotstack render my-template.json --output json
+shotstack render my-template.json --watch              # submit + poll until done
+shotstack render my-template.json --watch --output json
 ```
 
 ### `shotstack status <id>`

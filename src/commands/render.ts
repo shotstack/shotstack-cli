@@ -6,6 +6,7 @@ import { requireApiKey } from "../http/auth.ts";
 import { resolveEnv, ENV_NAMES } from "../http/env.ts";
 import { emit, parseOutputFormat } from "../output.ts";
 import { withRecording, commandArgv } from "../recorder.ts";
+import { pollStatus } from "./status.ts";
 
 interface RenderResponse {
   success: boolean;
@@ -17,8 +18,9 @@ export const renderCommand = new Command("render")
   .description("Submit a Shotstack Edit JSON to the render API")
   .argument("<file>", "Path to a Shotstack Edit JSON file")
   .option(`--env <name>`, `Environment: ${ENV_NAMES.join(" | ")}`)
+  .option("--watch", "After submitting, poll until the render reaches a terminal state")
   .option("--output <format>", "Output format: text | json", "text")
-  .action(async (file: string, options: { env?: string; output: string }) => {
+  .action(async (file: string, options: { env?: string; watch?: boolean; output: string }) => {
     await withRecording("render", commandArgv("render"), async () => {
       const format = parseOutputFormat(options.output);
       const apiKey = requireApiKey();
@@ -32,7 +34,13 @@ export const renderCommand = new Command("render")
       const result = await client.post<RenderResponse>("/render", template);
       const id = result.response.id;
 
-      emit(format, { id }, id);
-      return { renderId: id, response: result.response };
+      if (!options.watch) {
+        emit(format, { id }, id);
+        return { renderId: id, response: result.response };
+      }
+
+      const final = await pollStatus(client, id, format, true);
+      const exitCode = final.status === "failed" ? 1 : 0;
+      return { renderId: id, response: final, exitCode };
     });
   });

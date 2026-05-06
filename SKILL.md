@@ -32,13 +32,17 @@ Use `--env stage` for experimentation. Stage is free; v1 charges real credits. O
 ## Quickstart
 
 ```sh
-# Submit. Use --output json so the ID is parseable.
-shotstack render template.json --output json --env stage
+# Submit + poll in one command (most agent flows want this).
+shotstack render template.json --watch
+# → done  https://shotstack-api-v1-output.s3.amazonaws.com/.../01ja7-x8m2k-39rzv-cmvxve.mp4
+
+# Submit only (returns ID).
+shotstack render template.json --output json
 # → {"id":"01ja7-x8m2k-39rzv-cmvxve"}
 
-# Poll until terminal state.
-shotstack status 01ja7-x8m2k-39rzv-cmvxve --watch --env stage
-# → done  https://shotstack-api-stage-output.s3.amazonaws.com/.../01ja7-x8m2k-39rzv-cmvxve.mp4
+# Poll an existing render to terminal state.
+shotstack status 01ja7-x8m2k-39rzv-cmvxve --watch
+# → done  https://shotstack-api-v1-output.s3.amazonaws.com/.../01ja7-x8m2k-39rzv-cmvxve.mp4
 ```
 
 ## Hand-off to a human before rendering
@@ -57,11 +61,11 @@ Use `render` only when you're confident the JSON is final, or there's no human t
 
 ## Four CLI rules
 
-1. **Pipe → `--output json`.** Default output is human-readable. When parsing programmatically or piping to another command, always pass `--output json`. The text format is not stable across versions.
+1. **Pipe → `--output json`.** Default output is human-readable. When parsing programmatically or piping to another command, always pass `--output json`.
 
-2. **Use `--watch`, not a polling loop.** `shotstack status <id> --watch` exits when the render reaches `done` (exit 0) or `failed` (exit 1). Don't write `while true; do ...; sleep 3; done`.
+2. **Use `--watch`, not a polling loop.** `shotstack render <file> --watch` submits and polls in one shot; `shotstack status <id> --watch` polls an existing render. Both exit when terminal: `done` (exit 0) or `failed` (exit 1). Don't write `while true; do ...; sleep 3; done`.
 
-3. **Fetch the current docs before generating Edit JSON.** The Shotstack API evolves; LLM training data is often stale. Pull <https://shotstack.io/docs/guide/llms-full.txt> for the current schema and examples before composing an Edit from scratch.
+3. **Fetch the current schema and docs before generating Edit JSON.** The Shotstack API evolves; LLM training data is often stale. Pull <https://shotstack.io/docs/api/api.edit.json> and <https://shotstack.io/docs/guide/llms-full.txt> for the current schema and guides before composing an Edit from scratch.
 
 4. **Hand off to a human via `preview` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack preview` → human reviews/tweaks → render only when right.
 

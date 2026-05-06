@@ -21,6 +21,8 @@ export interface ClientOptions {
   env: ResolvedEnv;
 }
 
+export type Client = ReturnType<typeof createClient>;
+
 export function createClient(options: ClientOptions) {
   const baseUrl = options.env.baseUrl.replace(/\/$/, "");
 
