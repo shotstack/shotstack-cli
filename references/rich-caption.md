@@ -31,7 +31,7 @@ White Montserrat, uppercase, with subtle drop shadow. Slides each word down on a
     "type": "rich-caption",
     "src": "alias://audio",
     "font": { "family": "JTUSjIg1_i6t8kCHKm45xW5rygbi49c", "size": 88, "color": "#ffffff", "opacity": 1, "weight": 700 },
-    "wordAnimation": { "style": "slide", "direction": "down" },
+    "animation": { "style": "slide", "direction": "down" },
     "border": { "width": 0, "color": "#000000", "opacity": 1, "radius": 18 },
     "style": { "textTransform": "uppercase" },
     "padding": { "top": 25, "right": 0, "bottom": 0, "left": 0 },
@@ -58,7 +58,7 @@ Inter, black text on white pill background. Active word greys out. Clean editori
     "type": "rich-caption",
     "src": "alias://audio",
     "font": { "family": "UcCo3FwrK3iLTfvlaQc78lA2", "size": 52, "color": "#000000", "opacity": 1, "weight": 700 },
-    "wordAnimation": { "style": "fade" },
+    "animation": { "style": "fade" },
     "border": { "width": 0, "color": "#000000", "opacity": 1, "radius": 18 },
     "style": { "textTransform": "none" },
     "padding": { "top": 25, "right": 0, "bottom": 15, "left": 0 },
@@ -83,7 +83,7 @@ Luckiest Guy, white with thick black stroke, rotated -7.5°, active word gets a 
     "type": "rich-caption",
     "src": "alias://audio",
     "font": { "family": "_gP_1RrxsjcxVyin9l9n_j2RStR3qDpraA", "size": 52, "color": "#ffffff", "opacity": 1, "weight": 700 },
-    "wordAnimation": { "style": "highlight" },
+    "animation": { "style": "highlight" },
     "border": { "width": 0, "color": "#000000", "opacity": 1, "radius": 18 },
     "style": { "textTransform": "uppercase" },
     "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
@@ -112,7 +112,7 @@ Montserrat, white with thin stroke and shadow, active word in soft pink. Romanti
     "type": "rich-caption",
     "src": "alias://audio",
     "font": { "family": "JTUSjIg1_i6t8kCHKm45xW5rygbi49c", "size": 36, "color": "#ffffff", "opacity": 1, "weight": 700 },
-    "wordAnimation": { "style": "highlight" },
+    "animation": { "style": "highlight" },
     "border": { "width": 0, "color": "#000000", "opacity": 1, "radius": 18 },
     "style": { "textTransform": "none" },
     "padding": { "top": 15, "right": 0, "bottom": 0, "left": 0 },
@@ -142,7 +142,7 @@ Bangers, white with very thick black stroke, active word turns blue. High-energy
     "type": "rich-caption",
     "src": "alias://audio",
     "font": { "family": "FeVQS0BTqb0h60ACL5la2bxii28", "size": 84, "color": "#ffffff", "opacity": 1, "weight": 700 },
-    "wordAnimation": { "style": "pop" },
+    "animation": { "style": "pop" },
     "border": { "width": 0, "color": "#000000", "opacity": 1, "radius": 18 },
     "style": { "textTransform": "none" },
     "padding": { "top": 35, "right": 0, "bottom": 0, "left": 0 },
@@ -210,7 +210,7 @@ If none of the five presets fits, copy the closest preset and modify. The proper
 | Group | Properties |
 |---|---|
 | `font` | `family`, `size`, `color`, `opacity`, `weight` |
-| `wordAnimation` | `style`: `fade`, `slide`, `highlight`, `pop`. `direction` for slide: `up`, `down`, `left`, `right`. |
+| `animation` | `style`: `fade`, `slide`, `highlight`, `pop`. `direction` for slide: `up`, `down`, `left`, `right`. |
 | `border` | `width`, `color`, `opacity`, `radius` |
 | `padding` | `top`, `right`, `bottom`, `left` (numbers) |
 | `stroke` | `width`, `color`, `opacity` (text outline) |
