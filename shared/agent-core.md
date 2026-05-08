@@ -16,6 +16,7 @@ CSS naming conventions (`alignment`, `vertical: "center"`) **do not** apply. The
 | You'd guess (wrong) | API uses (right) |
 |---|---|
 | `alignment` | `align` |
+| `align: "center"` (string on rich-text asset) | `align: { "horizontal": "center", "vertical": "middle" }` (object) |
 | `align.vertical: "center"` | `align.vertical: "middle"` |
 | `font.name` | `font.family` |
 | `duration` | `length` |
