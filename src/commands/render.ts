@@ -7,6 +7,7 @@ import { resolveEnv, ENV_NAMES } from "../http/env.ts";
 import { emit, parseOutputFormat } from "../output.ts";
 import { withRecording, commandArgv } from "../recorder.ts";
 import { pollStatus } from "./status.ts";
+import { validateEdit, formatIssues } from "../lib/validate.ts";
 
 interface RenderResponse {
   success: boolean;
@@ -29,6 +30,13 @@ export const renderCommand = new Command("render")
       const path = resolve(process.cwd(), file);
       const raw = await readFile(path, "utf8");
       const template = JSON.parse(raw) as unknown;
+
+      const validation = validateEdit(template);
+      if (!validation.ok) {
+        if (format === "json") console.log(JSON.stringify({ ok: false, issues: validation.issues }));
+        else console.error(formatIssues(validation.issues));
+        return { exitCode: 1, validation };
+      }
 
       const client = createClient({ apiKey, env });
       const result = await client.post<RenderResponse>("/render", template);

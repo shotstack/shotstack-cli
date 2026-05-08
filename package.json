@@ -28,7 +28,9 @@
     "test": "bun test"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "@shotstack/schemas": "^1.10.10",
+    "commander": "^12.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bun": "latest",

@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { spawn, execSync } from "node:child_process";
 import { Command } from "commander";
 import { emit, parseOutputFormat } from "../output.ts";
+import { validateEdit, formatIssues } from "../lib/validate.ts";
 
 const STUDIO_URL = "https://shotstack.studio";
 const SHARE_API_URL = `${STUDIO_URL}/api/share`;
@@ -24,7 +25,13 @@ export const studioCommand = new Command("studio")
     const path = resolve(process.cwd(), file);
     const raw = await readFile(path, "utf8");
     const template = JSON.parse(raw) as unknown;
-    assertTemplateShape(template);
+
+    const validation = validateEdit(template);
+    if (!validation.ok) {
+      if (format === "json") console.log(JSON.stringify({ ok: false, issues: validation.issues }));
+      else console.error(formatIssues(validation.issues));
+      process.exit(1);
+    }
 
     const { url, shortened } = await buildStudioUrl(template, { shorten: options.shorten });
 
@@ -80,12 +87,6 @@ async function tryShortenViaStudio(template: unknown): Promise<string | null> {
   } catch {
     return null;
   }
-}
-
-function assertTemplateShape(t: unknown): asserts t is { timeline: unknown; output: unknown } {
-  if (!t || typeof t !== "object") throw new Error("Template must be a JSON object.");
-  if (!("timeline" in t)) throw new Error("Template missing required field: timeline.");
-  if (!("output" in t)) throw new Error("Template missing required field: output.");
 }
 
 async function copyToClipboard(text: string): Promise<void> {
