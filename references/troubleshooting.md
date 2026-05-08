@@ -61,7 +61,7 @@ You used a font name that isn't in the built-in list and didn't load it via `tim
 
 A `rich-caption` clip without `width`, `height`, and `fit: "none"` defaults to filling the entire output.
 
-**Fix:** use one of the five named presets in `references/rich-caption.md` (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) which include the right dimensions, or set `width`/`height`/`fit: "none"` explicitly on your clip.
+**Fix:** use one of the five named presets in `references/caption.md` (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) which include the right dimensions, or set `width`/`height`/`fit: "none"` explicitly on your clip.
 
 ## Timeline renders but layers are wrong
 

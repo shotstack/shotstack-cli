@@ -47,15 +47,18 @@ shotstack status 01ja7-x8m2k-39rzv-cmvxve --watch
 
 ## Hand-off to a human before rendering
 
-When a human is in the loop and may want to tweak the result, prefer **`shotstack preview <file>`** over `shotstack render`. By default it opens the browser to `https://shotstack.studio/#json=<base64url>` and prints the URL — the timeline loads directly into the browser-based editor. No API call, no key, no charge. The human can play, edit, and decide whether to render — saving credits when the AI's first attempt isn't quite right.
+When a human is in the loop and may want to tweak the result, prefer **`shotstack studio <file>`** over `shotstack render`. By default it posts the JSON to the share API and opens `https://shotstack.studio/s/<slug>` in the browser — a short, shareable URL. No API key, no render credits charged. The human can play, edit, and decide whether to render.
 
 ```sh
-shotstack preview template.json              # opens browser + prints URL
-shotstack preview template.json --no-open    # headless: just print the URL
-shotstack preview template.json --output json # piping: {"url":"..."}, no browser
+shotstack studio template.json              # opens browser + prints short URL
+shotstack studio template.json --no-open    # headless: just print the URL
+shotstack studio template.json --no-shorten # emit base64url URL inline (offline / debug)
+shotstack studio template.json --output json # piping: {"url":"...","shortened":true}, no browser
 ```
 
 On headless systems (no `xdg-open`, no `$DISPLAY`) the browser launch silently no-ops; the URL is still printed. Safe to run anywhere.
+
+If the share API is unreachable, the command falls back to the inline base64url form automatically and prints a stderr warning. Shares expire after 30 days.
 
 Use `render` only when you're confident the JSON is final, or there's no human to review.
 
@@ -67,7 +70,7 @@ Use `render` only when you're confident the JSON is final, or there's no human t
 
 3. **Fetch the current schema and docs before generating Edit JSON.** The Shotstack API evolves; LLM training data is often stale. Pull <https://shotstack.io/docs/api/api.edit.json> and <https://shotstack.io/docs/guide/llms-full.txt> for the current schema and guides before composing an Edit from scratch.
 
-4. **Hand off to a human via `preview` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack preview` → human reviews/tweaks → render only when right.
+4. **Hand off to a human via `studio` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack studio` → human reviews/tweaks → render only when right.
 
 ## Authoring Edit JSON
 
@@ -100,8 +103,8 @@ Authoritative sources, in order of preference:
 
 This skill ships sub-references for the gnarly bits:
 
-- [`references/timeline.md`](references/timeline.md) — track layering, transitions, soundtrack vs audio
-- [`references/rich-caption.md`](references/rich-caption.md) — sizing per resolution, default style, the 5 named presets, alias pattern
+- [`references/timeline.md`](references/timeline.md) — track layering, transitions, background music via audio assets
+- [`references/caption.md`](references/caption.md) — sizing per resolution, default style, the 5 named presets, alias pattern (asset type: `rich-caption`)
 - [`references/svg.md`](references/svg.md) — required attrs, supported elements
 - [`references/fonts.md`](references/fonts.md) — built-in fonts, Google Fonts URL pattern, custom-font workflow
 - [`references/asset-library.md`](references/asset-library.md) — placeholder videos, images, music

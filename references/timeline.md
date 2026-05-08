@@ -1,6 +1,6 @@
 # Timeline conventions
 
-Detailed guide to track layering, the soundtrack vs audio distinction, and `timeline.fonts[]`. Read this when building any non-trivial Edit JSON.
+Detailed guide to track layering, background music (via `audio` assets — `timeline.soundtrack` is deprecated), and `timeline.fonts[]`. Read this when building any non-trivial Edit JSON.
 
 ## Contents
 
@@ -17,7 +17,7 @@ The single most counter-intuitive Shotstack convention.
 
 `timeline.tracks` is an array. **The first element is the TOP layer (foreground); the last is the BOTTOM (background).** The order of the JSON array IS the visual stacking order, top-to-bottom.
 
-Per the [official docs](https://shotstack.io/docs/guide/architecting-an-application/guidelines/):
+Per the [official docs](https://shotstack.io/docs/guide/getting-started/core-concepts.md):
 
 > Tracks are layered on top of each other in the same order they are added to the array with the top most track layered over the top of those below it.
 
@@ -72,25 +72,32 @@ If you put the video first and the captions last, the video covers the captions 
 | Title card on video | Title clip in early track, video in later track |
 | Picture-in-picture | PiP video in early track, main video in later track |
 
-## Soundtrack vs audio asset
+## Background music: use `audio`, not `timeline.soundtrack`
 
-Prefer `Audio` assets — they support custom timing, keyframes, and effects, and can do everything `timeline.soundtrack` can. Use `timeline.soundtrack` only when you want a single background track spanning the whole edit.
+`timeline.soundtrack` is **deprecated**. Always use an `audio` asset on its own track with `length: "end"`. The audio asset path supports keyframes, custom timing, multi-clip mixing, and the full effect set; soundtrack does not.
 
 ```json
 {
   "timeline": {
-    "soundtrack": {
-      "src": "https://shotstack-assets.s3.amazonaws.com/music/unminus/palmtrees.mp3",
-      "effect": "fadeOut"
-    },
-    "tracks": [/* ... */]
+    "tracks": [
+      /* ...other tracks... */
+      {
+        "clips": [{
+          "asset": {
+            "type": "audio",
+            "src": "https://shotstack-assets.s3.amazonaws.com/music/unminus/palmtrees.mp3",
+            "effect": "fadeOut"
+          },
+          "start": 0,
+          "length": "end"
+        }]
+      }
+    ]
   }
 }
 ```
 
-`soundtrack.effect` accepts `fadeIn`, `fadeOut`, or `fadeInFadeOut`.
-
-An `audio` clip with `length: "end"` is functionally identical to `timeline.soundtrack`.
+`asset.effect` on audio accepts `fadeIn`, `fadeOut`, or `fadeInFadeOut` (same enum the deprecated soundtrack used).
 
 ## `timeline.fonts[]` for custom fonts
 
@@ -127,7 +134,7 @@ See `references/fonts.md` for the full pattern.
 
 ## Common track-layout patterns
 
-**Slideshow:** images in one track, soundtrack for music. One image per clip; use `start: "auto"` to chain them.
+**Slideshow:** images in one track, an `audio` asset on a separate track with `length: "end"` for the background music. One image per clip; use `start: "auto"` to chain them.
 
 **Voiceover with captions:** captions in track[0], audio in track[1] (with `alias` for the captions to reference), video/image in track[2].
 

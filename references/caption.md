@@ -1,6 +1,8 @@
-# Rich-caption guide
+# Caption guide
 
 Word-level animated captions. The most failure-prone asset type — read this fully before composing one.
+
+The asset type to use is **`rich-caption`** (Shotstack's name for word-level captions). The deprecated `caption` type still parses but produces inferior output — always use `rich-caption`.
 
 ## Contents
 
@@ -182,7 +184,7 @@ Rich-caption transcribes audio to produce word-level timing. Three ways to sourc
 | `src` value | Behaviour |
 |---|---|
 | `alias://<name>` | Auto-transcribe a referenced audio/video/text-to-speech clip. Set `alias: "<name>"` on the source clip. **Preferred for sync.** |
-| Subtitle file URL | Use existing `.srt`, `.vtt`, `.ttml`, or `.dfxp` file. No auto-transcription. |
+| Subtitle file URL | Use existing `.srt` or `.vtt` file. No auto-transcription. |
 | Audio/video file URL | Auto-transcribe a standalone media file. Use when there's no source clip on the timeline. |
 
 The `alias://` form keeps the captions in sync with the source clip even when you change its `start` or `length`.

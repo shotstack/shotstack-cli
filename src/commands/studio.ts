@@ -5,15 +5,20 @@ import { Command } from "commander";
 import { emit, parseOutputFormat } from "../output.ts";
 
 const STUDIO_URL = "https://shotstack.studio";
+const SHARE_API_URL = `${STUDIO_URL}/api/share`;
+const SHARE_TIMEOUT_MS = 3000;
 const URL_WARN_THRESHOLD = 6000;
 
-export const previewCommand = new Command("preview")
-  .description("Open a shotstack.studio URL that loads the Edit JSON in the browser editor")
+export const studioCommand = new Command("studio")
+  .description(
+    "Open the Edit JSON in the shotstack.studio web editor. By default, posts the JSON to the share API and returns a short URL."
+  )
   .argument("<file>", "Path to a Shotstack Edit JSON file")
   .option("--copy", "Copy the URL to the clipboard")
   .option("--no-open", "Do not try to open the URL in a browser")
+  .option("--no-shorten", "Skip the share API; emit a base64url URL inline")
   .option("--output <format>", "Output format: text | json", "text")
-  .action(async (file: string, options: { copy?: boolean; open: boolean; output: string }) => {
+  .action(async (file: string, options: { copy?: boolean; open: boolean; shorten: boolean; output: string }) => {
     const format = parseOutputFormat(options.output);
 
     const path = resolve(process.cwd(), file);
@@ -21,10 +26,12 @@ export const previewCommand = new Command("preview")
     const template = JSON.parse(raw) as unknown;
     assertTemplateShape(template);
 
-    const url = buildPreviewUrl(template);
+    const { url, shortened } = await buildStudioUrl(template, { shorten: options.shorten });
 
-    if (url.length > URL_WARN_THRESHOLD) {
-      console.error(`warning: encoded URL is ${url.length} characters; large templates may exceed browser URL limits.`);
+    if (!shortened && url.length > URL_WARN_THRESHOLD) {
+      console.error(
+        `warning: encoded URL is ${url.length} characters; large templates may exceed browser URL limits.`
+      );
     }
 
     if (options.copy) await copyToClipboard(url);
@@ -32,13 +39,47 @@ export const previewCommand = new Command("preview")
     const opened = options.open && browserAvailable() && openInBrowser(url);
 
     if (format === "json" || !opened) {
-      emit(format, { url }, url);
+      emit(format, { url, shortened }, url);
     }
   });
 
-export function buildPreviewUrl(template: unknown): string {
+interface StudioUrl {
+  url: string;
+  shortened: boolean;
+}
+
+export async function buildStudioUrl(
+  template: unknown,
+  options: { shorten?: boolean } = {}
+): Promise<StudioUrl> {
+  const shouldShorten = options.shorten !== false;
+  if (shouldShorten) {
+    const shortUrl = await tryShortenViaStudio(template);
+    if (shortUrl) return { url: shortUrl, shortened: true };
+    console.error("warning: could not reach the shotstack.studio share API; falling back to inline URL.");
+  }
+  return { url: buildInlineUrl(template), shortened: false };
+}
+
+export function buildInlineUrl(template: unknown): string {
   const encoded = Buffer.from(JSON.stringify(template), "utf8").toString("base64url");
   return `${STUDIO_URL}/#json=${encoded}`;
+}
+
+async function tryShortenViaStudio(template: unknown): Promise<string | null> {
+  try {
+    const res = await fetch(SHARE_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(template),
+      signal: AbortSignal.timeout(SHARE_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { url?: string };
+    return json.url ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function assertTemplateShape(t: unknown): asserts t is { timeline: unknown; output: unknown } {

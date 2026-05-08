@@ -52,11 +52,13 @@ These string values are accepted in addition to numbers:
 |---|---|---|
 | `clip.start` | `"auto"` | Start when the previous clip on the same track finishes |
 | `clip.start` | `"alias://<name>"` | Inherit start from another clip with `alias: "<name>"` |
-| `clip.length` | `"auto"` | Play for the full duration of the asset |
-| `clip.length` | `"end"` | Play until the end of the timeline |
+| `clip.length` | `"auto"` | Asset's natural duration. Use for foreground (video, voiceover, scene). |
+| `clip.length` | `"end"` | Until timeline ends, capped at asset duration. Use for background (music, captions, watermark). |
 | `clip.length` | `"alias://<name>"` | Inherit length from another clip |
 
-The `alias://` protocol is also used in `rich-caption` `src` to auto-transcribe a referenced audio/video clip — see `references/rich-caption.md`.
+`"end"` does NOT loop short audio — use a numeric `length` if you need precise control.
+
+The `alias://` protocol is also used in `rich-caption` `src` to auto-transcribe a referenced audio/video clip — see `references/caption.md`.
 
 ## Public HTTPS URLs only
 
@@ -95,12 +97,15 @@ Use only the **current** asset types; the deprecated ones still parse but should
 | `audio` | Audio clip placed at a specific time on the timeline. |
 | `rich-text` | Styled text overlay with full typography control. **Use this instead of `text`/`html`/`title`.** |
 | `svg` | Vector graphics from raw SVG markup. See `references/svg.md`. |
-| `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See `references/rich-caption.md`. |
+| `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See `references/caption.md`. |
 | `luma` | Luma matte for masking effects. |
 | `image-to-video` | **AI**: animate a still image into a short video clip. Billed per generation. |
 | `text-to-image` | **AI**: generate an image from a text prompt. Billed per generation. |
+| `text-to-speech` | **AI**: generate speech from a text prompt. Billed per generation. |
 
-`timeline.soundtrack` is a separate top-level field (not an asset type) for a single background music track. `timeline.fonts[]` is a separate field for custom font URLs.
+`timeline.fonts[]` is a separate field for custom font URLs (not an asset type).
+
+For background music, **use an `audio` asset on its own track** with `length: "end"`. Do NOT use `timeline.soundtrack` — it is deprecated. The audio asset path supports keyframes, custom timing, fades, and effects; soundtrack does not.
 
 ### Deprecated — do not use
 
@@ -112,6 +117,7 @@ Use only the **current** asset types; the deprecated ones still parse but should
 | `caption` | `rich-caption` |
 | `html` | `rich-text` |
 | `shape` | `svg` with `<rect>`, `<circle>`, `<polygon>` etc. |
+| `timeline.soundtrack` | `audio` asset on its own track with `length: "end"` |
 
 ### AI-generated assets
 
@@ -151,9 +157,9 @@ The `font.family` value is the **font file basename** (without `.ttf`/`.otf`).
 
 1. **Reverse track order.** `tracks[0]` is the TOP layer, not the bottom. Captions go in early tracks; backgrounds go in late tracks.
 2. **System fonts.** `Arial`, `Helvetica`, `Times New Roman`, etc. are not installed. Use Google Fonts via `timeline.fonts[]` (preferred) or one of the built-in fonts in `references/fonts.md`.
-3. **Captions fill the whole frame.** A `rich-caption` clip without `width`, `height`, and `fit: "none"` covers the entire output. Use a named preset from `references/rich-caption.md`.
+3. **Captions fill the whole frame.** A `rich-caption` clip without `width`, `height`, and `fit: "none"` covers the entire output. Use a named preset from `references/caption.md`.
 4. **`<text>` inside an SVG asset.** Raw `<text>` is unsupported. Use a `rich-text` asset for any text content; reserve SVG for shapes only.
-5. **Composing custom caption styles when presets exist.** The five named presets (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) cover the common styles. Use one verbatim from `references/rich-caption.md` unless the user asks for something specific.
+5. **Composing custom caption styles when presets exist.** The five named presets (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) cover the common styles. Use one verbatim from `references/caption.md` unless the user asks for something specific.
 
 ## Per-topic deep dives
 

@@ -1,6 +1,6 @@
 # Shotstack CLI
 
-Command-line interface for the [Shotstack](https://shotstack.io) video rendering API. Built for humans and AI coding agents.
+Command-line interface for the [Shotstack](https://shotstack.io) video rendering API. Built for humans and AI agents.
 
 ```sh
 shotstack render template.json
@@ -16,7 +16,7 @@ npm i -g @shotstack/cli
 # one-shot via npx
 npx @shotstack/cli render template.json
 
-# one-shot via bun (~100x faster than npx for cached invocations)
+# one-shot via bun
 bunx @shotstack/cli render template.json
 ```
 
@@ -27,7 +27,7 @@ All three install paths use the same `@shotstack/cli` package on npm.
 Set your API key as an environment variable:
 
 ```sh
-export SHOTSTACK_API_KEY=sk_...
+export SHOTSTACK_API_KEY=...
 ```
 
 Get a key at <https://shotstack.io>.
@@ -69,22 +69,23 @@ shotstack status 01ja7-x8m2k-... --watch
 shotstack status 01ja7-x8m2k-... --output json
 ```
 
-### `shotstack preview <file>`
+### `shotstack studio <file>`
 
-Opens a `shotstack.studio` URL that loads the Edit JSON directly into the browser-based editor. No API call, no key, no charge — pure client-side encoding via the URL hash. Use it to hand a generated edit off to a human for review or quick tweaks before rendering.
+Opens a `shotstack.studio` URL that loads the Edit JSON in the browser-based editor. By default, posts the JSON to the share API and emits a short URL like `https://shotstack.studio/s/abc12345` — clean, shareable, expires in 30 days. Falls back to inline base64url encoding if the share API is unreachable.
+
+No render API key required; no render credits charged. Use to hand a generated edit off to a human for review or quick tweaks before rendering.
 
 ```sh
-shotstack preview my-template.json
-# → opens browser silently
+shotstack studio my-template.json
+# → opens browser silently with https://shotstack.studio/s/<slug>
 
-shotstack preview my-template.json --copy        # also copies URL to clipboard
-shotstack preview my-template.json --no-open     # print URL, don't open browser
-shotstack preview my-template.json --output json # emit {"url":"..."} on stdout
+shotstack studio my-template.json --copy        # also copies URL to clipboard
+shotstack studio my-template.json --no-open     # print URL, don't open browser
+shotstack studio my-template.json --no-shorten  # emit base64url inline (offline / debug)
+shotstack studio my-template.json --output json # emit {"url":"...","shortened":true} on stdout
 ```
 
 When a browser can be launched, the command is silent — the URL only opens in the browser. On a headless server (no `$DISPLAY`, no `xdg-open`), the URL is printed to stdout instead so you can copy it elsewhere.
-
-Templates whose encoded URL exceeds ~6KB print a stderr warning. Browser URL limits vary; if you regularly exceed it, host the JSON publicly and link to it via `https://shotstack.studio/#src=<https-url>`.
 
 ### `shotstack feedback`
 

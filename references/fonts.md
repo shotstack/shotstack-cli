@@ -1,6 +1,6 @@
 # Fonts guide
 
-The Shotstack render engine ships a small built-in font set; everything else must be loaded as a custom font via `timeline.fonts[]`. Per the [Shotstack docs](https://shotstack.io/docs/guide/architecting-an-application/rich-text/#custom-fonts), **prefer custom Google Fonts** for predictable rendering and full typographic range.
+The Shotstack render engine ships a small built-in font set; everything else must be loaded as a custom font via `timeline.fonts[]`. Per the [Shotstack docs](https://shotstack.io/docs/guide/architecting-an-application/rich-text.md), **prefer custom Google Fonts** for predictable rendering and full typographic range.
 
 ## Contents
 
