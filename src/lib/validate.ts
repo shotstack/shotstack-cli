@@ -77,10 +77,11 @@ function lookupValueSuggestion(path: string, issue: ZodIssue): string | undefine
   return undefined;
 }
 
-function formatPath(parts: ReadonlyArray<string | number>): string {
+function formatPath(parts: ReadonlyArray<PropertyKey>): string {
   return parts.reduce<string>((acc, part) => {
     if (typeof part === "number") return `${acc}[${part}]`;
-    return acc ? `${acc}.${part}` : part;
+    const key = String(part);
+    return acc ? `${acc}.${key}` : key;
   }, "");
 }
 
