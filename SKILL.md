@@ -10,6 +10,8 @@ license: Apache-2.0
 
 # Shotstack CLI
 
+This skill loads in **terminal-based AI agents** (Claude Code, Cursor, Codex CLI, Gemini CLI, etc.). All operations here are shell commands. There is no embedded UI, no iframe, no inline canvas, no MCP tool surface — only `shotstack` invocations from a terminal. To hand off to a human, run `shotstack studio <file>`; this opens the user's default browser to a `shotstack.studio` URL. Tell the user to click Render *in the browser tab*, not in any UI inside the terminal.
+
 Two commands for the Shotstack video rendering API. `render` submits an Edit JSON and returns a render ID; `status` polls a render until done.
 
 ## Authentication
@@ -70,15 +72,23 @@ Use `render` only when you're confident the JSON is final, or there's no human t
 
 3. **Fetch the current schema and docs before generating Edit JSON.** The Shotstack API evolves; LLM training data is often stale. Pull <https://shotstack.io/docs/api/api.edit.json> and <https://shotstack.io/docs/guide/llms-full.txt> for the current schema and guides before composing an Edit from scratch.
 
-4. **Hand off to a human via `studio` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack studio` → human reviews/tweaks → render only when right.
+4. **Hand off to a human via `shotstack studio <file>` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack studio file.json` (opens browser) → human reviews/tweaks → render only when right.
 
-## Authoring Edit JSON
+## REQUIRED: Read `shared/agent-core.md` before composing any Edit JSON
 
-The conventions agents most often get wrong (track order is reversed, asset type names, font allowlist, smart strings) live in the shared agent-core guide:
+The Shotstack schema does **not** match CSS or web conventions. Composing Edit JSON from training-data instinct will produce silently invalid renders. **Read [`shared/agent-core.md`](shared/agent-core.md) first**, every time. The most-failed conversions:
 
-**See [`shared/agent-core.md`](shared/agent-core.md)** before composing any Edit JSON.
+| You'd write (wrong) | API requires (right) |
+|---|---|
+| `alignment` | `align` |
+| `align.vertical: "center"` | `align.vertical: "middle"` |
+| `font.name` | `font.family` |
+| `duration` | `length` |
+| `transitions: [...]` (array) | `transition: { in, out }` (object) |
+| `fit: "cover"` (CSS instinct) | `fit: "crop"` |
+| `tracks[0]` is the bottom (z-index instinct) | `tracks[0]` is the **TOP** layer |
 
-This file is also delivered to chat-based clients (Claude.ai, ChatGPT) via the Shotstack MCP server, so the conventions stay identical across surfaces.
+The full ruleset (asset types, fonts, smart-string clip values, top-5 mistakes) lives in `shared/agent-core.md`. The same file is also returned by the Shotstack MCP server's `get_shotstack_guide` tool, so the conventions are identical across surfaces.
 
 ## Exit codes
 
