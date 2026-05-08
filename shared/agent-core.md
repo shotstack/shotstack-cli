@@ -1,8 +1,6 @@
 # Shotstack Agent Core
 
-Universal Edit JSON authoring conventions. Both the [Shotstack CLI](https://github.com/shotstack/shotstack-cli) skill and the [Shotstack MCP server](https://mcp.shotstack.io) ship this file; phase 3 of [ENG-567](https://linear.app/shotstack/issue/ENG-567) promotes it to `https://shotstack.io/docs/agents/agent-core.md`.
-
-Read this **before composing any Edit JSON**. The conventions agents most often get wrong are listed here once.
+Universal Edit JSON authoring conventions. Read this **before composing any Edit JSON**. The conventions agents most often get wrong are listed here once. The same file ships with both the Shotstack CLI skill and the Shotstack MCP server.
 
 ## Before composing JSON: check the schema
 
@@ -159,11 +157,4 @@ The `font.family` value is the **font file basename** (without `.ttf`/`.otf`).
 
 ## Per-topic deep dives
 
-For details beyond this core guide, see:
-
-- `references/timeline.md` — track layering, transitions, soundtrack vs audio
-- `references/rich-caption.md` — sizing per resolution, default style, the 5 named presets, alias pattern
-- `references/svg.md` — required attrs, supported elements
-- `references/fonts.md` — built-in fonts, Google Fonts URL pattern, custom-font workflow
-- `references/asset-library.md` — placeholder videos, images, music
-- `references/troubleshooting.md` — common errors and fixes
+For details beyond this core guide (rich-caption presets, SVG constraints, full font URL list, troubleshooting), see the `references/` directory in the Shotstack CLI repo or fetch the topic-specific docs from `https://shotstack.io/docs/guide/llms-full.txt`.
