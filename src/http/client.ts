@@ -53,8 +53,9 @@ export function createClient(options: ClientOptions) {
   }
 
   return {
-    post: <T>(path: string, body: unknown) => request<T>("POST", path, body),
+    post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
     get: <T>(path: string) => request<T>("GET", path),
+    del: <T>(path: string) => request<T>("DELETE", path),
   };
 }
 

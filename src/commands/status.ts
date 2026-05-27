@@ -32,8 +32,8 @@ export const statusCommand = new Command("status")
   .action(async (id: string, options: { watch?: boolean; env?: string; output: string }) => {
     await withRecording("status", commandArgv("status"), async () => {
       const format = parseOutputFormat(options.output);
-      const apiKey = requireApiKey();
       const env = resolveEnv(options.env);
+      const apiKey = requireApiKey(env.name);
       const client = createClient({ apiKey, env });
       const final = await pollStatus(client, id, format, options.watch === true);
       const exitCode = final.status === "failed" ? 1 : 0;

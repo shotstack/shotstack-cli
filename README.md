@@ -24,7 +24,16 @@ All three install paths use the same `@shotstack/cli` package on npm.
 
 ## Authentication
 
-Set your API key as an environment variable:
+Save your API key once with `shotstack login`. It's stored in `~/.shotstack/credentials.json`, keyed per environment:
+
+```sh
+shotstack login                  # prompts for the key (hidden), saves the v1 key
+shotstack login --env stage      # save the stage key
+echo "$KEY" | shotstack login    # non-interactive: read the key from stdin (CI/agents)
+shotstack logout [--env <name>]  # remove a saved key (--all removes every env)
+```
+
+Alternatively, set an environment variable, which **overrides** any saved key:
 
 ```sh
 export SHOTSTACK_API_KEY=...
@@ -45,6 +54,8 @@ Pick the API environment with `--env` or `SHOTSTACK_ENV`. Defaults to `v1` (prod
 shotstack render template.json --env stage
 SHOTSTACK_ENV=stage shotstack render template.json
 ```
+
+The `ingest` commands target the parallel `https://api.shotstack.io/ingest/{env}` base with the same API key.
 
 ## Commands
 
@@ -86,6 +97,38 @@ shotstack studio my-template.json --output json # emit {"url":"...","shortened":
 ```
 
 When a browser can be launched, the command is silent — the URL only opens in the browser. On a headless server (no `$DISPLAY`, no `xdg-open`), the URL is printed to stdout instead so you can copy it elsewhere.
+
+### `shotstack ingest <subcommand>`
+
+Uploads your own local files (or fetches remote URLs) via the [Ingest API](https://shotstack.io/docs/guide/ingesting-footage/ingest-api/) and hosts them on Shotstack so they can be referenced from an Edit. An Edit can only reference media by URL, so this is how you get a local clip, image, audio file, or font into a render.
+
+```sh
+# Upload a local file; --watch polls until ready and prints the hosted URL.
+shotstack ingest upload ./clip.mp4 --watch
+# → ready  https://shotstack-ingest-api-v1-sources.s3.ap-southeast-2.amazonaws.com/.../source.mp4
+
+shotstack ingest upload ./clip.mp4 --output json   # returns {"id":"..."} immediately (no URL yet)
+shotstack ingest fetch https://example.com/v.mp4 --watch   # host a copy of a remote URL
+shotstack ingest status <source-id> --watch        # poll an existing source
+shotstack ingest list --output json                # list ingested sources
+shotstack ingest delete <source-id>                # remove a source from storage
+```
+
+Sources are stored until you delete them. The bare `upload`/`fetch` commands return only an id — use `--watch` (or `ingest status`) to get the hosted URL once ingestion is `ready`.
+
+### `shotstack login` / `shotstack logout`
+
+Saves (or removes) your API key so it persists across shell sessions. Keys are stored per environment in `~/.shotstack/credentials.json`.
+
+```sh
+shotstack login                  # prompt, save the v1 (production) key
+shotstack login --env stage      # save the stage key
+echo "$KEY" | shotstack login --env v1   # non-interactive (CI / agents)
+shotstack logout --env stage     # remove the stage key
+shotstack logout --all           # remove every saved key
+```
+
+The `SHOTSTACK_API_KEY` env var always takes precedence over a saved key, so CI and automation are unaffected.
 
 ### `shotstack feedback`
 

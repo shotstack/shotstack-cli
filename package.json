@@ -1,6 +1,6 @@
 {
   "name": "@shotstack/cli",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Command-line interface for the Shotstack video rendering API.",
   "license": "Apache-2.0",
   "homepage": "https://github.com/shotstack/shotstack-cli",
@@ -28,7 +28,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@shotstack/schemas": "^1.10.10",
+    "@shotstack/schemas": "^1.12.2",
     "commander": "^12.1.0",
     "zod": "^4.4.3"
   },

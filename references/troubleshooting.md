@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common errors and the fix for each. If your error isn't here, run `shotstack feedback` to file a pre-filled GitHub issue with the render UUID attached — engineers can find server-side state in seconds.
+Common errors and the fix for each. **Catch most of them before rendering:** `shotstack validate <file>` checks an Edit against the schema and flags same-track overlaps, unloaded fonts and non-public URLs offline — no API key, no credits. If your error isn't here, run `shotstack feedback` to file a pre-filled GitHub issue with the render UUID attached — engineers can find server-side state in seconds.
 
 ## Contents
 
@@ -9,6 +9,7 @@ Common errors and the fix for each. If your error isn't here, run `shotstack fee
 - Video looks stretched / squished after rendering
 - "Font not found"
 - Captions cover the whole frame
+- Clips flicker / "clips overlap" on one track
 - Timeline renders but layers are wrong
 - "Invalid asset URL"
 - "Render failed" with no other detail
@@ -62,6 +63,12 @@ You used a font name that isn't in the built-in list and didn't load it via `tim
 A `rich-caption` clip without `width`, `height`, and `fit: "none"` defaults to filling the entire output.
 
 **Fix:** use one of the five named presets in `references/caption.md` (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) which include the right dimensions, or set `width`/`height`/`fit: "none"` explicitly on your clip.
+
+## Clips flicker / "clips overlap" on one track
+
+Two clips on the **same track** have overlapping `start`/`length` ranges, so the engine can't decide which to show — they flicker. This is the most common structural mistake when several elements appear at once (e.g. a title, a price and a button on an end card all at `start: 8`).
+
+**Fix:** put anything visible at the same time on its **own track**. Sequential clips (one ends, the next begins — chain them with `"start": "auto"`) can share a track. `shotstack validate <file>` pinpoints the offending track and clip indices offline. See `shared/agent-core.md` → "Don't overlap clips on the same track" for a before/after.
 
 ## Timeline renders but layers are wrong
 

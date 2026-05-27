@@ -3,6 +3,9 @@ import { renderCommand } from "./commands/render.ts";
 import { statusCommand } from "./commands/status.ts";
 import { feedbackCommand } from "./commands/feedback.ts";
 import { studioCommand } from "./commands/studio.ts";
+import { ingestCommand } from "./commands/ingest.ts";
+import { validateCommand } from "./commands/validate.ts";
+import { loginCommand, logoutCommand } from "./commands/auth.ts";
 import { ApiError } from "./http/client.ts";
 import { MissingApiKeyError } from "./http/auth.ts";
 import { InvalidEnvError } from "./http/env.ts";
@@ -15,6 +18,10 @@ const program = new Command()
   .addCommand(renderCommand)
   .addCommand(statusCommand)
   .addCommand(studioCommand)
+  .addCommand(ingestCommand)
+  .addCommand(validateCommand)
+  .addCommand(loginCommand)
+  .addCommand(logoutCommand)
   .addCommand(feedbackCommand);
 
 try {

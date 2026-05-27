@@ -2,11 +2,9 @@
 
 The Shotstack render engine ships a small built-in font set; everything else must be loaded as a custom font via `timeline.fonts[]`. Per the [Shotstack docs](https://shotstack.io/docs/guide/architecting-an-application/rich-text.md), **prefer custom Google Fonts** for predictable rendering and full typographic range.
 
-## Contents
+## CRITICAL: never fabricate font URLs
 
-- The custom-font workflow (preferred)
-- Built-in fonts (fallback)
-- Why system fonts (Arial, Helvetica) fail
+**Do NOT construct or reconstruct Google Fonts URLs from memory.** Google rotates the version segment (`v26 → v31 → …`) and the hashed filename changes with each version, so any URL you assemble from training data is almost certainly a 404 — and a missing font fails the render. **Copy a URL verbatim** from the verified catalogue below, or from the live Studio SDK catalogue (linked further down). If the exact font you want isn't available verbatim, pick the closest verified match rather than inventing one.
 
 ## Custom-font workflow (preferred)
 
@@ -24,7 +22,7 @@ Load a font from a public URL via `timeline.fonts[]`, then reference its **file 
           "asset": {
             "type": "rich-text",
             "text": "Hello",
-            "font": { "family": "JTUSjIg1_i6t8kCHKm45xW5rygbi49c", "size": 60, "color": "#ffffff" }
+            "font": { "family": "JTUSjIg1_i6t8kCHKm45xW5rygbi49c", "size": 60, "weight": "700", "color": "#ffffff" }
           },
           "start": 0, "length": 3
         }]
@@ -34,38 +32,42 @@ Load a font from a public URL via `timeline.fonts[]`, then reference its **file 
 }
 ```
 
-The `font.family` value is the URL's filename without extension.
+The `font.family` value is the URL's filename without extension, and it **must** match the URL's basename exactly. For URL `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf`, family = `JTUSjIg1_i6t8kCHKm45xW5rygbi49c`. If `family` and the URL basename diverge, the font silently fails to load.
 
-For URL `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf`, family = `JTUSjIg1_i6t8kCHKm45xW5rygbi49c`.
+## Verified font catalogue (12 fonts)
 
-### Where to find Google Fonts URLs
+Copied verbatim from the Studio SDK catalogue. Paste the **url** into `timeline.fonts[].src`, paste the **family** into `asset.font.family`.
 
-The Shotstack Studio SDK ships a curated catalogue of ~400 Google Fonts at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>. Each entry has a fastest-served Google Fonts CDN URL.
+| Font (style) | family (use in `font.family`) | url (use in `timeline.fonts[].src`) |
+|---|---|---|
+| Inter (sans, variable) | `UcCo3FwrK3iLTfvlaQc78lA2` | `https://fonts.gstatic.com/s/inter/v20/UcCo3FwrK3iLTfvlaQc78lA2.ttf` |
+| Roboto (sans, variable) | `KFOmCnqEu92Fr1Me5WZLCzYlKw` | `https://fonts.gstatic.com/s/roboto/v50/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf` |
+| Open Sans (sans, variable) | `mem8YaGs126MiZpBA-U1UpcaXcl0Aw` | `https://fonts.gstatic.com/s/opensans/v44/mem8YaGs126MiZpBA-U1UpcaXcl0Aw.ttf` |
+| Montserrat (sans, variable) | `JTUSjIg1_i6t8kCHKm45xW5rygbi49c` | `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf` |
+| Poppins (sans) | `pxiEyp8kv8JHgFVrFJDUc1NECPY` | `https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrFJDUc1NECPY.ttf` |
+| DM Sans (sans, variable) | `rP2Hp2ywxg089UriOZSCHBeHFl0` | `https://fonts.gstatic.com/s/dmsans/v17/rP2Hp2ywxg089UriOZSCHBeHFl0.ttf` |
+| Nunito (sans, variable) | `XRXV3I6Li01BKof4MuyAbsrVcA` | `https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKof4MuyAbsrVcA.ttf` |
+| Raleway (sans, variable) | `1Ptug8zYS_SKggPN-CoCTqluHfE` | `https://fonts.gstatic.com/s/raleway/v37/1Ptug8zYS_SKggPN-CoCTqluHfE.ttf` |
+| Oswald (display, variable) | `TK3iWkUHHAIjg75GHjUHte5fKg` | `https://fonts.gstatic.com/s/oswald/v57/TK3iWkUHHAIjg75GHjUHte5fKg.ttf` |
+| Bebas Neue (display) | `JTUSjIg69CK48gW7PXooxW5rygbi49c` | `https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXooxW5rygbi49c.ttf` |
+| Anton (display) | `1Ptgg87LROyAm0K08i4gS7lu` | `https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm0K08i4gS7lu.ttf` |
+| Playfair Display (serif, variable) | `nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU` | `https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU.ttf` |
 
-Common picks:
+Variable fonts (most of the above) cover the full weight range (100–900) from a single URL — set `font.weight` in the clip. For the non-variable fonts (Poppins, Bebas Neue, Anton) the registered URL is weight 400; the SDK falls back gracefully when you request a bolder weight.
 
-| Font | URL |
-|---|---|
-| Montserrat 700 | `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf` |
-| Roboto 400 | `https://fonts.gstatic.com/s/roboto/v48/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.ttf` |
-| Inter 700 | `https://fonts.gstatic.com/s/inter/v20/UcCo3FwrK3iLTfvlaQc78lA2.ttf` |
-| Bangers | `https://fonts.gstatic.com/s/bangers/v25/FeVQS0BTqb0h60ACL5la2bxii28.ttf` |
-| Luckiest Guy | `https://fonts.gstatic.com/s/luckiestguy/v25/_gP_1RrxsjcxVyin9l9n_j2RStR3qDpraA.ttf` |
-| Open Sans 400 | `https://fonts.gstatic.com/s/opensans/v40/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf` |
-| Poppins 700 | `https://fonts.gstatic.com/s/poppins/v22/pxiByp8kv8JHgFVrLCz7Z1xlFQ.ttf` |
+### Sourcing more fonts
 
-For other fonts, find the family on <https://fonts.google.com>, view the CSS, and copy the `.ttf` URL from the `@font-face` `src`.
+The Studio SDK ships a curated catalogue of ~400 Google Fonts at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>. Copy the `url` and `family` for an entry **verbatim** — do not hand-edit the version or hash. For a font not in that catalogue, open it on <https://fonts.google.com>, view the CSS, and copy the exact `.ttf` URL from the `@font-face` `src` (again, verbatim).
 
 ### Multiple weights / styles
 
-Each weight or style is a separate URL — load each one you need:
+Each weight or style is a **separate URL** — load every one you reference. Look each up in the SDK catalogue rather than guessing the hash:
 
 ```json
 {
   "timeline": {
     "fonts": [
-      { "src": "https://fonts.gstatic.com/s/roboto/v48/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.ttf" },
-      { "src": "https://fonts.gstatic.com/s/roboto/v48/KFOlCnqEu92Fr1MmEU9fBBc4.ttf" }
+      { "src": "https://fonts.gstatic.com/s/roboto/v50/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf" }
     ]
   }
 }

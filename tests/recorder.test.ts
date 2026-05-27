@@ -38,6 +38,19 @@ describe("redactSignedUrl", () => {
     expect(redactSignedUrl(url)).toBe("https://cdn.shotstack.io/render/abc.mp4?[redacted-signed]");
   });
 
+  test("redacts the whole query of an ingest upload URL, including the trailing STS token", () => {
+    const url =
+      "https://shotstack-ingest-api-v1-sources.s3.ap-southeast-2.amazonaws.com/owner/id/source" +
+      "?AWSAccessKeyId=ASIALEAKYKEY&Expires=1672819007&Signature=abc%2Fdef%3D" +
+      "&x-amz-acl=public-read&x-amz-security-token=IQoJLEAKYTOKEN";
+    const out = redactSignedUrl(url);
+    expect(out).toBe(
+      "https://shotstack-ingest-api-v1-sources.s3.ap-southeast-2.amazonaws.com/owner/id/source?[redacted-signed]",
+    );
+    expect(out).not.toContain("IQoJLEAKYTOKEN");
+    expect(out).not.toContain("ASIALEAKYKEY");
+  });
+
   test("leaves plain URLs untouched", () => {
     expect(redactSignedUrl("https://example.com/a.mp4")).toBe("https://example.com/a.mp4");
   });

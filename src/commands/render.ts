@@ -24,8 +24,8 @@ export const renderCommand = new Command("render")
   .action(async (file: string, options: { env?: string; watch?: boolean; output: string }) => {
     await withRecording("render", commandArgv("render"), async () => {
       const format = parseOutputFormat(options.output);
-      const apiKey = requireApiKey();
       const env = resolveEnv(options.env);
+      const apiKey = requireApiKey(env.name);
 
       const path = resolve(process.cwd(), file);
       const raw = await readFile(path, "utf8");
@@ -37,18 +37,60 @@ export const renderCommand = new Command("render")
         else console.error(formatIssues(validation.issues));
         return { exitCode: 1, validation };
       }
-
-      const client = createClient({ apiKey, env });
-      const result = await client.post<RenderResponse>("/render", template);
-      const id = result.response.id;
-
-      if (!options.watch) {
-        emit(format, { id }, id);
-        return { renderId: id, response: result.response };
+      // Valid, but surface any warnings (unloaded fonts, non-public URLs, …).
+      if (validation.issues.length > 0 && format !== "json") {
+        console.error(formatIssues(validation.issues));
       }
 
-      const final = await pollStatus(client, id, format, true);
-      const exitCode = final.status === "failed" ? 1 : 0;
-      return { renderId: id, response: final, exitCode };
+      const client = createClient({ apiKey, env });
+
+      // Watched renders retry once if the render job fails with a transient
+      // message (e.g. "Service temporarily unavailable"); otherwise submit once.
+      const maxAttempts = options.watch ? 2 : 1;
+      let lastId = "";
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const result = await client.post<RenderResponse>("/render", template);
+        const id = result.response.id;
+        lastId = id;
+
+        if (!options.watch) {
+          emit(format, { id }, id);
+          return { renderId: id, response: result.response };
+        }
+
+        const final = await pollStatus(client, id, format, true);
+        if (final.status !== "failed") {
+          return { renderId: id, response: final, exitCode: 0 };
+        }
+
+        const transient = isTransientFailure(final.error);
+        if (transient && attempt < maxAttempts) {
+          if (format !== "json") {
+            console.error(`⚠ render failed (${final.error ?? "unknown"}) — looks transient, resubmitting ${attempt + 1}/${maxAttempts}…`);
+          }
+          await sleep(2000);
+          continue;
+        }
+
+        if (format !== "json") {
+          console.error(
+            transient
+              ? `✗ render still failing after ${maxAttempts} attempts. For a complex multi-scene edit, preview it client-side first: shotstack studio ${file}`
+              : `✗ render failed: ${final.error ?? "unknown error"}`,
+          );
+        }
+        return { renderId: id, response: final, exitCode: 1 };
+      }
+      return { renderId: lastId, exitCode: 1 };
     });
   });
+
+const TRANSIENT_FAILURE = /temporar|try again|time ?d? ?out|timeout|too many requests|service unavailable|unavailable|throttl/i;
+
+function isTransientFailure(error: string | undefined): boolean {
+  return typeof error === "string" && TRANSIENT_FAILURE.test(error);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

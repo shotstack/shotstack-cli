@@ -107,7 +107,8 @@ async function rotateIfNeeded(path: string): Promise<void> {
 }
 
 const URL_RE = /^https?:\/\//i;
-const SIGNED_URL_GLOBAL_RE = /(https?:\/\/[^\s'"<>]+?)\?[^\s'"<>]*?(?:Signature|X-Amz-[A-Za-z0-9-]*)=[^\s'"<>]*/gi;
+const SIGNED_URL_GLOBAL_RE =
+  /(https?:\/\/[^\s'"<>?]+)\?[^\s'"<>]*?(?:Signature|X-Amz-[A-Za-z0-9-]+|x-amz-security-token)=[^\s'"<>]*/gi;
 
 export function redactSignedUrl(value: string): string {
   return value.replace(SIGNED_URL_GLOBAL_RE, "$1?[redacted-signed]");
