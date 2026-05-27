@@ -37,7 +37,7 @@ Big title where each word springs up in sequence. GSAP timeline, fully seekable.
 }
 ```
 
-Each word is a `<span>` starting `translateY(120%)`. The trailing empty tween is a hold so the title sits still before the clip ends. The CSS names `Anton`, but custom fonts must be inlined — `timeline.fonts[]` doesn't apply inside `html5` and remote `@font-face` is CSP-blocked — so without an inline `data:` `@font-face` it renders in the `system-ui` fallback. To get `Anton`: `@font-face{font-family:'Anton';src:url('data:font/woff2;base64,…') format('woff2')}`.
+Each word is a `<span>` starting `translateY(120%)`; the trailing empty tween holds the title still before the clip ends. `Anton` falls back to `system-ui` unless you inline it (see Fonts above): `@font-face{font-family:'Anton';src:url('data:font/woff2;base64,…') format('woff2')}`.
 
 ---
 
