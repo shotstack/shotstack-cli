@@ -2,7 +2,7 @@
 
 The `html5` asset type renders a self-contained HTML/CSS/JS page inside a video clip. Use it for animated overlays, data visualisations, motion graphics, and anything you'd build as a tiny single-page web app.
 
-This is the **modern replacement for the deprecated `html` asset.** `html5` runs in a real browser iframe with a JS runtime, library preloads, and deterministic frame capture — the old `html` asset only rendered static markup.
+This is the **modern replacement for the deprecated `html` asset.** `html5` runs in a real browser iframe with a JS runtime, library preloads, and deterministic frame capture — the old `html` asset should never be used.
 
 ## Contents
 
@@ -13,7 +13,7 @@ This is the **modern replacement for the deprecated `html` asset.** `html5` runs
 - Sizing
 - Worked example: animated lower-third (GSAP)
 - Worked example: animated bar chart (D3 + GSAP)
-- Author overrides for custom animation engines
+- Worked example: 10-second countdown (pure CSS)
 - Common mistakes
 - When to use `html5` vs `rich-text`/`svg`
 
@@ -48,39 +48,23 @@ Clip-level `width` and `height` set the iframe's pixel dimensions. They default 
 Four libraries are always available — no `<script src=>` tags needed:
 
 - **GSAP** (`window.gsap`) — primary animation library. Use timelines (`gsap.timeline()`) over loose tweens; the harness seeks timelines correctly.
-- **anime.js** (`window.anime`) — alternative animation library. Every instance is auto-tracked via `__shotstackAnimeInstances` (catches `autoplay: false` instances that `anime.running` misses).
+- **anime.js** (`window.anime`) — alternative animation library.
 - **D3** (`window.d3`) — for data binding, scales, and SVG/DOM construction. Pair with GSAP for the actual animation; D3's transitions work too but GSAP is more reliable under seek.
 - **Lottie** (`window.lottie`) — Bodymovin JSON player (SVG-renderer build; `renderer: "canvas"` is unavailable).
 
-These cover ~95% of motion-graphics use cases. **You can't load other libraries via `<script src=>`** — the iframe's CSP blocks all external scripts and network access (see *Sandbox restrictions* below). GSAP, anime.js and Lottie are the animation engines the seek harness drives; D3 just builds the DOM/data (animate it with GSAP). Capture is a static seek at the edit's frame rate (`output.fps`, default 30).
+These cover ~95% of motion-graphics use cases. **You can't load other libraries via `<script src=>`** — the iframe's CSP blocks all external scripts and network access (see *Sandbox restrictions* below).
 
 ## The browser harness (deterministic auto-seek)
 
-When a clip plays, the SDK captures frames by seeking the iframe's animation state to specific timestamps and rasterising each frame. This is **deterministic**: the same input always produces the same output, regardless of how long real-time playback would take.
-
-The harness is injected automatically. It installs one `window` function you do **not** write yourself:
-
-- `__shotstackSeek(timeMs)` — seeks every detected animation source to `timeMs`.
+Frames are captured by **seeking** the animation to each timestamp, not by playing in real time — so your animation must be **seekable**. GSAP (timelines or tweens), anime.js, Lottie, and CSS (`@keyframes`, transitions, `Element.animate()`) are all driven automatically. Anything time-driven that isn't seekable gives a frozen or wrong frame: never use `setTimeout`, `setInterval`, `requestAnimationFrame` loops, `Date.now()` / `performance.now()`, or `gsap.call()`. For "different content at different times" (countdowns, tickers, scene swaps) use the staggered-CSS pattern (see the countdown example) or an `onUpdate` tween (see the count-up snippet).
 
 **Duration comes from the clip's `length`** — there's no animation-duration auto-detection. Size your animation to run within (or fill) the clip's `length`.
-
-**What gets seeked automatically:**
-
-| Source | How it's driven |
-|---|---|
-| GSAP timelines (`gsap.timeline()`) | `tl.pause()` + `tl.seek(seconds)` on every descendant timeline. |
-| GSAP loose tweens | `gsap.globalTimeline.seek(seconds)`. |
-| anime.js instances | `instance.pause()` + `instance.seek(timeMs)` on every tracked instance. |
-| Lottie animations | `anim.goToAndStop(timeMs, false)` on every registered animation. |
-| CSS `@keyframes`, transitions, `Element.animate(...)` | `document.getAnimations()` → set `currentTime` on each. |
-
-**Practical consequence:** write your animation as you would for a normal web page. Use GSAP timelines, anime.js, Lottie, or CSS — the harness drives time. Don't rely on `setTimeout`, `requestAnimationFrame` loops, or `Date.now()` for animation timing — none of those are seekable.
 
 ## Sandbox restrictions: no network, inline everything
 
 The iframe renders under a strict Content-Security-Policy (`default-src 'none'`), in both Studio preview and cloud render. Nothing is fetched from the network at render time:
 
-- **No external `<script src=>`.** Only the bundled GSAP/anime.js/D3/Lottie run (they're inlined for you). Another library would have to be inlined into your `js` — and must be seekable (see *Author overrides*).
+- **No external `<script src=>`.** Only the bundled GSAP/anime.js/D3/Lottie run (they're inlined for you). Another library would have to be inlined into your `js` — and must be seekable.
 - **No `fetch` / `XMLHttpRequest`** (`connect-src 'none'`). Bundle any data inline — e.g. the JS array in the bar-chart example.
 - **No remote images** (`img-src 'self' data: blob:`). Embed images as `data:` URIs. A `data:image/svg+xml` background is fine.
 - **No remote fonts** (`font-src 'self' data:`) — see below.
@@ -102,9 +86,7 @@ An unresolved family silently falls back to the browser default — the render w
 
 The single most important rule: **size the clip to the content, not to the canvas.** Then position with `offset`.
 
-The clip's `width` / `height` becomes the iframe's natural pixel dimensions AND the editor's selection box. When the user drags the clip's corners to resize, the iframe gets CSS-scaled — the bar stays the same shape but every internal pixel scales proportionally. This is true regardless of CSS / GSAP / anime / Lottie.
-
-If the clip is sized to the canvas (1920×1080) but the visual content is a small lower-third in the corner, the selection box appears huge over empty space — confusing for the user, and resizing scales the lower-third with the empty space.
+The clip's `width` / `height` are the iframe's natural pixel dimensions — match them to the content's real size; every coordinate inside the iframe is in that pixel space. Sizing the clip to the whole canvas when the content is a small corner overlay wastes space and makes it harder to place — size to the content and move it with `offset`.
 
 **Right pattern:**
 
@@ -171,12 +153,11 @@ Slide-in name + role bar with subtle accent. **Clip sized to the bar (560×120),
 
 **Patterns to copy:**
 
-- **Clip is the size of the bar, not the canvas.** Selection box wraps the bar; resizing changes the bar's size; placement is one `offset` change.
+- **Clip is the size of the bar, not the canvas** — placement is one `offset` change.
 - **`html, body, .bar` all 560×120.** No absolute positioning inside the iframe — the bar IS the iframe content.
-- Single GSAP timeline driving every animation. The harness seeks the timeline; child tweens follow automatically.
+- One GSAP timeline drives every animation.
 - Merge fields (`{{name}}`, `{{role}}`) in the HTML, populated by **top-level** `merge[]` (sibling of `timeline`/`output`, NOT a clip property). Keeps the asset reusable.
-- Background `rgba(...,0.92)` so the bar sits over a video underneath without being fully opaque.
-- Final `.to({}, { duration: 3.5 })` is a hold — no animation, just consumes timeline time so the bar stays visible before fading out.
+- A trailing `.to({}, { duration: 3.5 })` holds the final state before the clip ends.
 
 ## Worked example: animated bar chart (D3 + GSAP)
 
@@ -213,7 +194,6 @@ D3 builds the SVG; GSAP animates the bars growing in. 6 seconds, 1080p.
 - D3 builds DOM; **GSAP animates it**. D3's `.transition()` works but GSAP is the more reliable seek target.
 - Bars start at `y = ih, height = 0` (collapsed at the baseline); GSAP grows them up via `attr: { y, height }`.
 - Stagger via `1.0 + i * 0.08` per bar — each bar starts 80ms after the previous.
-- Single `<linearGradient>` in `<defs>`, all bars reference it via `fill="url(#g)"`. SVG-native, no per-bar styling.
 
 ## Worked example: 10-second countdown (pure CSS)
 
@@ -233,46 +213,19 @@ A countdown is "show different content at different times" — the classic case 
 }
 ```
 
-No JS at all. The harness's WAAPI driver pauses each animation, sets `currentTime` to the capture timestamp, and commits the seeked values — so each frame correctly shows whichever number is mid-pop.
+No JS at all — each number is a CSS animation in its own time slot, so every captured frame shows whichever number is mid-pop.
 
 **Patterns to copy:**
 
 - **One element per state.** `<div id="n10">10</div>`, `<div id="n9">9</div>`, ... — never mutate `textContent` from JS.
 - **Stagger via `animation-delay`.** `0s, 1s, 2s, ...` lines each animation up to a unique slot.
 - **`animation-fill-mode: both`.** During the delay phase the element shows the `0%` keyframe (`opacity:0`); after the animation it shows the `100%` keyframe (`opacity:0`). Together with `position:absolute;inset:0`, only the currently-animating element is visible.
-- **Linear easing.** The harness can seek at any timestamp; non-linear easings still work, but `linear` keeps the math obvious when iterating on timing.
 
 The same pattern scales to scene transitions (each scene is a `<section>` with its own animation slot), tickers (each price is a `<div>` with a slot), animated lists, etc.
 
-## What to avoid for time-driven content
-
-- **`setTimeout` / `setInterval` / `requestAnimationFrame` loops** — none advance during capture. The harness drives time deterministically.
-- **`new Date()` / `Date.now()` / `performance.now()` reads** — return the host's wall-clock, not the capture's seeked time.
-- **`gsap.call(fn, args, time)`** — callbacks aren't seekable. Use `gsap.fromTo()` / `gsap.to()` tweens, or pure CSS animations.
-- **Any state mutation triggered by an event other than the harness seek.**
-
-## Author overrides for exotic animation engines
-
-You almost never need these. They exist for engines outside the supported libraries (Three.js, P5, custom WebGL loops) — and since external scripts are blocked (see *Sandbox restrictions*), such an engine has to be inlined in your `js`. If you're using GSAP, anime.js, Lottie, or CSS animations, **do not install these** — the auto-detected path is the only one tested for parity between Studio playback and cloud render.
-
-```js
-// Custom timeline — the harness calls seek() alongside the auto-detected sources.
-// seek() receives SECONDS.
-window.__shotstackTimeline = {
-  seek(seconds) { /* set every part of your scene to time `seconds` */ }
-};
-
-// Or install a bare seek hook. NOTE: this one receives MILLISECONDS.
-window.__shotstackSeek = (timeMs) => { /* set state for time timeMs */ };
-```
-
-Install before any animation starts — the harness loads at the end of the document and captures whatever hook you've defined. The clip's `length` sets the duration; there is no duration hook.
-
 ## Common mistakes
 
-1. **Time-based logic in JS that isn't seekable.** `setTimeout`, `setInterval`, `requestAnimationFrame` loops, `new Date()` / `Date.now()` reads, and **`gsap.call()`** callbacks all fail because they don't run during the deterministic capture. Use GSAP timelines (`tl.to/fromTo`), anime.js instances, Lottie, or pure CSS keyframes — the four sources the harness auto-seeks.
-
-2. **`<canvas>` elements.** The Studio frame capture serialises the iframe's DOM via `XMLSerializer`. A `<canvas>` element's bitmap lives in the 2D-context backing store, NOT in the DOM — so the cloned canvas comes through empty and **the captured frames show nothing where the canvas was**. The cloud render (puppeteer) handles canvas correctly, but Studio playback won't, so the parity is broken. Use SVG or positioned HTML elements instead:
+1. **`<canvas>` elements.** The Studio frame capture serialises the iframe's DOM via `XMLSerializer`. A `<canvas>` element's bitmap lives in the 2D-context backing store, NOT in the DOM — so the cloned canvas comes through empty and **the captured frames show nothing where the canvas was**. The cloud render (puppeteer) handles canvas correctly, but Studio playback won't, so the parity is broken. Use SVG or positioned HTML elements instead:
 
    | Want | Replace `<canvas>` with |
    |---|---|
@@ -283,10 +236,6 @@ Install before any animation starts — the harness loads at the end of the docu
 
    If you're building something that genuinely cannot be expressed without canvas, render it as a `<video>` or `<image>` asset instead of an `html5` clip.
 2. **Mismatched dimensions.** If `clip.width = 1920` and your CSS sets `body { width: 1280px }`, content gets cropped or stretched. Pin the iframe's `html, body` dimensions to the clip dimensions.
-3. **Expecting network access.** External `<script src=>`, `fetch`/XHR, remote `<img src="https://…">`, and remote `@font-face` URLs are all blocked by the iframe's Content-Security-Policy. Only the bundled libraries run, and there is no network — inline all data, images, and fonts as `data:` URIs (see *Sandbox restrictions*).
-4. **Forgetting `overflow: hidden`.** Without it, animations can scroll the iframe and capture extra content beyond the intended viewport.
-5. **Using the deprecated `html` asset type.** It still parses but is static-only and ignores the harness. Always use `html5`.
-6. **Painting an opaque background by accident.** The body is **transparent by default**, so a clip above a video already composites over it. Set `body { background: … }` only when you genuinely want a solid backdrop — it will hide the layers below.
 
 ## When to use `html5` vs `rich-text`/`svg`
 
