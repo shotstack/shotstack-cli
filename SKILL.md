@@ -126,6 +126,8 @@ The Shotstack schema does **not** match CSS or web conventions. Composing Edit J
 
 The full ruleset (asset types, fonts, smart-string clip values, top-5 mistakes) lives in `shared/agent-core.md`. The same file is also returned by the Shotstack MCP server's `get_shotstack_guide` tool, so the conventions are identical across surfaces.
 
+**For anything that animates, compose motion from the house tokens** — one duration scale (`base` 0.6 s in / `fast` 0.33 s out), one house ease (`power3.out` / `cubic-bezier(0.16,1,0.3,1)`, no overshoot by default), one stagger (`0.13 s`). The *Motion language* section of `agent-core.md` is the summary; [`references/motion.md`](references/motion.md) has the full GSAP/CSS recipes and the brand kit. **Don't invent a new easing or duration per clip** — shared tokens are what make a multi-clip edit feel like one production.
+
 ## Exit codes
 
 | Code | Meaning |
@@ -154,6 +156,7 @@ This skill ships sub-references for the gnarly bits:
 - [`references/positioning.md`](references/positioning.md) — coordinate model, `position`/`offset` (fraction of frame, +y up), clip bounding box & `fit`, text sizing, transform order
 - [`references/caption.md`](references/caption.md) — sizing per resolution, default style, the 5 named presets, alias pattern (asset type: `rich-caption`)
 - [`references/svg.md`](references/svg.md) — required attrs, supported elements
+- [`references/motion.md`](references/motion.md) — **the house motion language**: one duration scale, one ease, one stagger; choreography recipes (GSAP/CSS), the rich-text/transition mappings, and the brand kit. Read before composing any animation.
 - [`references/html5.md`](references/html5.md) — HTML5 asset: fields, preloaded libs (gsap/d3/anime/lottie), browser harness, sizing, worked examples
 - [`references/html5-snippets.md`](references/html5-snippets.md) — copy-paste motion-graphic clips: kinetic headline, count-up/price odometer, shine sweep, pulsing CTA, film grain
 - [`references/fonts.md`](references/fonts.md) — built-in fonts, Google Fonts URL pattern, custom-font workflow
