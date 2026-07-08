@@ -1,6 +1,6 @@
 # HTML5 snippet pack — drop-in motion graphics
 
-Copy-paste `html5` clips that "pop" — kinetic type, count-ups, shine sweeps,
+Copy-paste `html5` clips that "pop" — kinetic type, value reveals, shine sweeps,
 pulsing CTAs, grain. Each is a **single clip**: paste it into a track's
 `clips[]`, set `start`/`length`, and position with `offset`.
 
@@ -14,7 +14,8 @@ easings and durations. Read [`motion.md`](motion.md) for the why and the full re
 
 Read [`html5.md`](html5.md) for the rules these obey. The non-negotiables:
 
-- **Seekable animation only.** GSAP timelines, GSAP tweens (incl. `onUpdate`), anime.js, Lottie, or CSS `@keyframes`. **Never** `setTimeout`/`setInterval`/`requestAnimationFrame`/`Date.now()`/`gsap.call()` — the renderer seeks by absolute time, it doesn't play.
+- **Seekable animation only.** GSAP timelines, GSAP tweens, anime.js, Lottie, or CSS `@keyframes`. **Never** `setTimeout`/`setInterval`/`requestAnimationFrame`/`Date.now()`/`gsap.call()` — the renderer seeks by absolute time, it doesn't play.
+- **`onUpdate` does not fire under seek.** GSAP `onUpdate` callbacks are **not** invoked when the harness seeks to a frame, so any DOM mutations made inside them (`textContent`, `innerHTML`, class swaps) won't appear in the rendered video. Animate **CSS properties only** (opacity, transform, filter, scale). Bake final values into the HTML at generation time and reveal them with opacity/transform tweens.
 - **Size the clip to the content, not the canvas.** `html, body` pinned to the clip's `width`/`height`; place with `offset` (`{x:0,y:0}` is centred, `y` positive is up). Use **px**, never `vw`/`vh`/`%`.
 - **The body is transparent by default** — the clip composites over the layers below (only set an opaque background if you want one).
 - **No `<canvas>`** — Studio capture serialises the DOM; canvas bitmaps come through empty. Use SVG or positioned DOM.
@@ -79,19 +80,19 @@ Each word starts `translateY(120%)`, opacity 0; `0.6 s` rise on `power3.out`, wo
 
 ---
 
-## 3. Count-up number / price odometer
+## 3. Value reveal — bake and fade-in
 
-**Category** data · **Use when** revealing a value, price, stat or metric · **Canvas** 620×220 · **Tags** number, count, price, data · **Merge-friendly** target value
+**Category** data · **Use when** revealing a value, price, stat or metric · **Canvas** 620×220 · **Tags** number, price, stat, data · **Merge-friendly** target value
 
-Animate a value from 0 to its target. Seek-safe because the count lives in a **tweened object with `onUpdate`** (fires on seek), never a timer.
+Bake the final value into the HTML and reveal it with opacity + blur + rise. The value is always present in the DOM — the animation controls only its visibility — so every captured frame shows the correct number. **Never use `onUpdate` to mutate `textContent`**: the seek harness doesn't fire `onUpdate` callbacks, so the value stays at its initial state (`$0`) in every frame.
 
 ```json
 {
   "asset": {
     "type": "html5",
-    "html": "<div class=\"wrap\"><span class=\"cur\">$</span><span id=\"n\">0</span></div>",
-    "css": "html,body{margin:0;width:620px;height:220px;overflow:hidden;background:transparent;font-family:system-ui,sans-serif}.wrap{display:flex;align-items:baseline;justify-content:center;width:620px;height:220px;color:#141414;font-weight:800;font-variant-numeric:tabular-nums}.cur{font-size:70px;margin-right:6px}#n{font-size:150px;letter-spacing:-2px}",
-    "js": "const o={v:0};const out=document.getElementById('n');const tl=gsap.timeline();tl.to(o,{v:395,duration:0.8,ease:'power2.out',onUpdate:()=>{out.textContent=Math.round(o.v)}});tl.to({},{duration:1.5});"
+    "html": "<div class=\"wrap\"><span class=\"cur\">$</span><span class=\"n\">395</span></div>",
+    "css": "html,body{margin:0;width:620px;height:220px;overflow:hidden;background:transparent;font-family:system-ui,sans-serif}.wrap{display:flex;align-items:baseline;justify-content:center;width:620px;height:220px;color:#141414;font-weight:800;font-variant-numeric:tabular-nums;opacity:0;transform:translateY(16px);filter:blur(10px)}.cur{font-size:70px;margin-right:6px}.n{font-size:150px;letter-spacing:-2px}",
+    "js": "gsap.to('.wrap',{opacity:1,y:0,filter:'blur(0px)',duration:0.8,ease:'power3.out'});gsap.to({},{duration:1.5});"
   },
   "start": 0,
   "length": 3,
@@ -101,7 +102,7 @@ Animate a value from 0 to its target. Seek-safe because the count lives in a **t
 }
 ```
 
-`slow` (0.8 s) count on `power2.out` (a decelerating settle reads right for a value), then a `hold`. Swap `v:395` for any target; for thousands separators use `Math.round(o.v).toLocaleString()`. Pair with a static label on an adjacent `rich-text` track ("FROM", "AUD").
+`slow` (0.8 s) reveal on `power3.out` (a decelerating settle reads right for a value), then a `hold`. Swap `395` for any value at generation time; for thousands separators format the string before baking it (`$63,642` not `63642`). Pair with a static label on an adjacent `rich-text` track ("FROM", "AUD").
 
 ---
 
@@ -185,7 +186,7 @@ A `data:` URI is fine **inside an html5 asset's CSS** (it's iframe content, not 
 
 ## Brand kit — re-skin every snippet at once
 
-The snippets share one palette (ink `#141414`, accent `#D96B82`) so a set already looks coherent. To re-skin a whole edit to a brand in one place, lift the colours/font into top-level `merge[]` and reference the tokens in each clip's `css` — `merge` find/replace runs over the `html`/`css` strings too:
+The snippets share one palette (ink `#141414`, accent `#D96B82`) so a set already looks coherent. To re-skin a whole edit to a brand in one place, lift the colours/font into top-level `merge[]` and reference the tokens in each clip's `html`, `css`, and `js` — `merge` find/replace runs over all three strings:
 
 ```json
 "merge": [
@@ -202,5 +203,5 @@ Then in any snippet's CSS, swap the literal hex for the token: `color:{{ink}}`, 
 - Each snippet is one clip on its own track. Layer order is top-track-first (see `agent-core.md`) — grain and shine go in **early** tracks, backgrounds in **late** ones.
 - They don't overlap on a single track, so `shotstack validate <file>` stays clean. Run it before rendering.
 - Reuse text via top-level `merge[]` (`{{title}}` in the HTML) — see the lower-third example in `html5.md`.
-- Mix calm and punchy deliberately: a `blur-reveal` title, a `kinetic-headline` hero line, a `count-up` stat, a `shine` on the product, a pulsing CTA — all on the same tokens, so the set reads as one piece.
+- Mix calm and punchy deliberately: a `blur-reveal` title, a `kinetic-headline` hero line, a `value-reveal` stat, a `shine` on the product, a pulsing CTA — all on the same tokens, so the set reads as one piece.
 - Heavier motion = longer render. Preview in `shotstack studio <file>` before spending credits.

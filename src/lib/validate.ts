@@ -149,7 +149,13 @@ function semanticChecks(input: unknown): ValidationIssue[] {
         }
       }
 
+      // --- html5 JS syntax check --------------------------------------------
       const type = asset?.type;
+      if (type === "html5" && typeof asset?.js === "string" && asset.js.length > 0) {
+        const jsIssue = checkJsSyntax(asset.js, `${at}.asset.js`);
+        if (jsIssue) issues.push(jsIssue);
+      }
+
       const src = asset?.src;
       if (typeof type === "string" && URL_SRC_TYPES.has(type) && typeof src === "string") {
         if (/^https:\/\//i.test(src) || /^alias:\/\//i.test(src)) {
@@ -191,6 +197,22 @@ function fontBasename(src: unknown): string | null {
   const base = noQuery.split("/").pop() ?? "";
   const stripped = base.replace(/\.(ttf|otf|woff2?|eot)$/i, "");
   return stripped.length ? stripped : null;
+}
+
+function checkJsSyntax(js: string, path: string): ValidationIssue | null {
+  try {
+    // Wrap in a function body so top-level const/var/return are valid.
+    new Function(js);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      path,
+      code: "js_syntax_error",
+      level: "error",
+      message: `asset.js has a syntax error — the html5 clip will render completely blank with no render error. ${message}`,
+    };
+  }
+  return null;
 }
 
 function truncate(value: string, max: number): string {

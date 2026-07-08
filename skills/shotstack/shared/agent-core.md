@@ -128,7 +128,7 @@ Compose from this rather than round-tripping the full schema — these are the v
 
 `align.horizontal` = `left|center|right`; `align.vertical` = `top|middle|bottom` (**not** `center`). `animation.preset` = `fadeIn` `slideIn` `typewriter` `ascend` `shift` `movingLetters`; `animation.style` = `character|word`; `animation.direction` = `left|right|up|down`. Give the clip a `width`/`height` box so text wraps and aligns where you expect.
 
-For motion beyond this (kinetic type, count-ups, shine sweeps, grain, pulsing CTAs) reach for `html5` — see [`references/html5-snippets.md`](../references/html5-snippets.md).
+For motion beyond this (kinetic type, value reveals, shine sweeps, grain, pulsing CTAs) reach for `html5` — see [`references/html5-snippets.md`](../references/html5-snippets.md).
 
 ## Motion language (house tokens)
 
@@ -162,6 +162,51 @@ Pick `output.resolution` (preset) OR `output.size.width`+`output.size.height` (c
 | `1080` | 1920×1080 @ 25 |
 
 Custom sizes must be divisible by 2.
+
+## Merge fields
+
+Top-level `merge[]` (sibling of `timeline`/`output`, NOT a clip property) is a simple find-and-replace that runs over the entire Edit JSON **before** any asset is processed. Each entry is `{ "find": "<TOKEN>", "replace": "<value>" }` — the `find` value is the token name **without** braces; every `{{TOKEN}}` occurrence in any string throughout the Edit is swapped for the value.
+
+```json
+{
+  "merge": [
+    { "find": "TITLE",   "replace": "Q4 Results" },
+    { "find": "REVENUE", "replace": "$1,247,890" },
+    { "find": "ACCENT",  "replace": "#22D3EE" }
+  ],
+  "timeline": {
+    "tracks": [{
+      "clips": [{
+        "asset": { "type": "rich-text", "text": "{{TITLE}}", "font": { "family": "Roboto", "size": 60, "color": "{{ACCENT}}" } },
+        "start": 0, "length": 3
+      }]
+    }]
+  },
+  "output": { "format": "mp4", "resolution": "1080" }
+}
+```
+
+**Rules:**
+- Whitespace inside braces is ignored: `{{ TITLE }}` and `{{TITLE}}` are the same token.
+- Token names are **case sensitive**. Use `UPPER_SNAKE_CASE` (the Shotstack convention).
+- The `{{` delimiter cannot be changed.
+- One `merge[]` entry can replace multiple `{{TOKEN}}` occurrences across the entire Edit.
+- The replacement is a dumb string swap — no conditionals, no loops, no escaping.
+
+**Where merge fields resolve:** every string value in the Edit JSON — `rich-text` `text` and `font.color`; `html5` `html`, `css`, and `js`; `svg` markup; `asset.src` URLs; `clip.transition` names; any string anywhere. This is an Edit-wide capability, not an html5 feature.
+
+**When to use merge vs baking at generation time:**
+
+| Scenario | Use |
+|---|---|
+| Reusable template rendered many times with different data (reports, personalised videos, per-user wraps) | `merge[]` — keep one Edit JSON, swap the `merge[]` per render |
+| Brand re-skinning (palette, font, accent across every clip) | `merge[]` — change one `merge[]` entry to re-skin the whole video |
+| One-off render or data unique to a single video | Bake values directly into the asset at generation time — simpler, no merge indirection |
+| Generating multiple edits programmatically (e.g. one per user from a CSV) | Either — merge keeps the template reusable, baking is more direct. If the template won't be reused, bake. |
+
+**Checking merge results:** pass `?data=true&merged=true` on the status request to see the merged Edit JSON in the response — useful for debugging unresolved placeholders.
+
+**Validate caveat:** `shotstack validate` checks `html5` JS syntax **before** merge resolution. A `{{TOKEN}}` inside a JS string literal (e.g. `color: "{{ACCENT}}"`) is valid JS and passes. A `{{TOKEN}}` in JS *code* position (not inside a string) may fail validation pre-merge but work at render time post-merge — keep merge fields inside string literals to avoid false positives.
 
 ## Asset types
 
@@ -211,9 +256,9 @@ One overlay is a `rich-text` job. **Several videos "in different styles" is not*
 |---|---|---|
 | 1 — type & layout | `rich-text` | Titles, lower-thirds, kickers, captions, price/CTA pills. Fast and reliable; the right default for static styled text. |
 | 2 — shapes | `svg` | Colour panels, rules, badges, frames, geometric accents behind or around type. |
-| 3 — motion graphics | `html5` | Kinetic type, count-ups / price odometers, shine sweeps, animated gradients, film grain, masked reveals, data-driven overlays — anything that should *move* beyond a `transition` or a Ken-Burns `effect`. gsap / anime / d3 / lottie are preloaded. See [`references/html5.md`](../references/html5.md) and the copy-paste clips in [`references/html5-snippets.md`](../references/html5-snippets.md). |
+| 3 — motion graphics | `html5` | Kinetic type, value reveals, shine sweeps, animated gradients, film grain, masked reveals, data-driven overlays — anything that should *move* beyond a `transition` or a Ken-Burns `effect`. gsap / anime / d3 / lottie are preloaded. See [`references/html5.md`](../references/html5.md) and the copy-paste clips in [`references/html5-snippets.md`](../references/html5-snippets.md). |
 
-**When the brief asks for a *range*, deliberately spread across the ladder.** A strong set: a couple of clean `rich-text` studio cuts, one or two `svg` colour-block promos, and several `html5` pieces carrying the real motion (kinetic headline, price odometer, shine-swept CTA, grain-graded teaser). Reserve the elaborate `html5` treatments for the hero / hype cuts where motion sells the product. If every clip in a "variety" brief is `rich-text`, you have not delivered variety.
+**When the brief asks for a *range*, deliberately spread across the ladder.** A strong set: a couple of clean `rich-text` studio cuts, one or two `svg` colour-block promos, and several `html5` pieces carrying the real motion (kinetic headline, value reveal, shine-swept CTA, grain-graded teaser). Reserve the elaborate `html5` treatments for the hero / hype cuts where motion sells the product. If every clip in a "variety" brief is `rich-text`, you have not delivered variety.
 
 ## Fonts
 

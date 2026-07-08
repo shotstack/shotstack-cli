@@ -6,12 +6,13 @@ Common errors and the fix for each. **Catch most of them before rendering:** `sh
 
 - "Unknown property: alignment" / wrong property names
 - "Invalid option: expected one of top|middle|bottom"
-- Video looks stretched / squished after rendering
+- Video looks stretched / squishing after rendering
 - "Font not found"
 - Captions cover the whole frame
 - Clips flicker / "clips overlap" on one track
 - Timeline renders but layers are wrong
 - "Invalid asset URL"
+- html5 clip is blank but render succeeded
 - "Render failed" with no other detail
 - Render takes much longer than expected
 - Credits exhausted on stage environment
@@ -81,6 +82,18 @@ You assumed `tracks[0]` was the bottom layer.
 The `src` is not a public HTTPS URL, or it's a `data:` URI, or it's a local path, or the URL needs auth that isn't included.
 
 **Fix:** host the asset at a public HTTPS URL or use a presigned URL with credentials in the URL itself. For tests, pull from `references/asset-library.md`.
+
+## html5 clip is blank but render succeeded
+
+An `html5` clip renders as a completely blank frame, but the render reports `status: "done"` with no error. This is a **silent failure** — there is no feedback loop.
+
+Two causes:
+
+1. **JS syntax error in `asset.js`.** A missing semicolon, unbalanced brace, or any other parse error crashes the entire script before any animation runs. `shotstack validate <file>` catches this offline — it runs each `asset.js` string through a syntax check and reports the error with the clip path. **Always validate before rendering.**
+
+2. **JS runtime error.** Referencing a DOM element that doesn't exist (`document.getElementById("missing")`), calling a method on `null`, or any other uncaught exception — the script stops mid-execution and the clip stays in its initial state (typically invisible if elements start at `opacity:0`). These are not caught by `validate` (they require the runtime DOM). To debug, wrap suspect code in `try/catch` and log to a visible element, or simplify the JS to isolate the failing line.
+
+A third variant: values stuck at `$0` or their initial state. This happens when `onUpdate` callbacks are used to mutate `textContent` — the seek harness doesn't fire `onUpdate`, so the DOM never updates. Bake final values into the HTML and animate opacity/transform instead. See `references/html5.md` → "The browser harness".
 
 ## "Render failed" with no other detail
 
