@@ -144,7 +144,7 @@ Default is human-readable. Pass `--output json` for machine-readable output. Exi
 
 ## For AI agents
 
-This repo ships a [`SKILL.md`](./SKILL.md) at the root, following the [Agent Skills open standard](https://agentskills.io). Works with Claude Code, Codex, Cursor, Copilot, Gemini CLI, and 50+ other agents.
+This repo ships an Agent Skill in [`skills/shotstack/`](./skills/shotstack/), a self-contained skill folder following the [Agent Skills open standard](https://agentskills.io). Works with Claude Code, Codex, Cursor, Copilot, Gemini CLI, and 50+ other agents.
 
 ```sh
 npx skills add shotstack/shotstack-cli

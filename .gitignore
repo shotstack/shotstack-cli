@@ -6,3 +6,7 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+
+# Agent-skill installer droppings (skills / clawdhub running in-repo)
+.agents/
+skills-lock.json
