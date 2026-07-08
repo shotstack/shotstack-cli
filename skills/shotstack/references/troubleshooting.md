@@ -13,6 +13,7 @@ Common errors and the fix for each. **Catch most of them before rendering:** `sh
 - Timeline renders but layers are wrong
 - "Invalid asset URL"
 - html5 clip is blank but render succeeded
+- html5 clip animates in the rendered MP4 but not in Studio preview
 - "Render failed" with no other detail
 - Render takes much longer than expected
 - Credits exhausted on stage environment
@@ -94,6 +95,17 @@ Two causes:
 2. **JS runtime error.** Referencing a DOM element that doesn't exist (`document.getElementById("missing")`), calling a method on `null`, or any other uncaught exception — the script stops mid-execution and the clip stays in its initial state (typically invisible if elements start at `opacity:0`). These are not caught by `validate` (they require the runtime DOM). To debug, wrap suspect code in `try/catch` and log to a visible element, or simplify the JS to isolate the failing line.
 
 A third variant: values stuck at `$0` or their initial state. This happens when `onUpdate` callbacks are used to mutate `textContent` — the seek harness doesn't fire `onUpdate`, so the DOM never updates. Bake final values into the HTML and animate opacity/transform instead. See `references/html5.md` → "The browser harness".
+
+## html5 clip animates in the rendered MP4 but not in Studio preview
+
+Studio preview and the cloud render use different capture mechanisms. The cloud render (puppeteer) properly handles all GSAP properties; Studio's client-side preview does not. This is a parity gap, not a render bug — the MP4 is the ground truth.
+
+Known differences:
+
+- **`:nth-child` and compound CSS selectors** as GSAP targets don't resolve in Studio preview. `.brow:nth-child(1) .bar` silently matches nothing; rows and bars stay in their initial state. Use unique element IDs (`#row0`, `#bar0`) instead — they work in both.
+- **`scale` / `scaleX` / `scaleY` transforms** don't animate in Studio preview. Elements starting at `scale(0)` or `scaleX(0)` stay invisible. Use `width` (for bars), `opacity`, or `y` transitions instead.
+
+If a clip looks wrong in Studio but the rendered MP4 is correct, don't waste credits re-rendering — check whether the JS uses structural selectors or scale transforms, and swap for ID-based targets and width/opacity animations.
 
 ## "Render failed" with no other detail
 
