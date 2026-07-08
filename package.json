@@ -17,9 +17,7 @@
   },
   "files": [
     "dist/shotstack.js",
-    "SKILL.md",
-    "shared",
-    "references"
+    "skills"
   ],
   "scripts": {
     "start": "bun run src/index.ts",
