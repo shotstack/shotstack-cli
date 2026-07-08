@@ -21,6 +21,7 @@ Read [`html5.md`](html5.md) for the rules these obey. The non-negotiables:
 - **No `<canvas>`** — Studio capture serialises the DOM; canvas bitmaps come through empty. Use SVG or positioned DOM.
 - **No network.** gsap/anime/d3/lottie are preloaded; external `<script src>`, `fetch`, remote `<img>`, and remote fonts are all CSP-blocked — inline everything as `data:` URIs.
 - **Fonts:** `timeline.fonts[]` does **not** reach `html5` and remote `@font-face` is blocked. These snippets name a display font first but render in the `system-ui` fallback unless you inline the font as a `data:` `@font-face`.
+- **Use unique element IDs for GSAP targets, not `:nth-child` or compound CSS selectors.** Studio preview doesn't resolve `.parent:nth-child(n) .child` patterns; `#id` works everywhere. When animating repeated elements (list rows, bars, cards), generate a unique ID per item (`id="row0"`, `id="bar0"`) rather than relying on structural selectors.
 
 Coordinates below assume a **1080×1920 vertical** canvas; adjust `offset` for other sizes.
 
