@@ -173,6 +173,44 @@ describe("validateEdit — asset URLs", () => {
   });
 });
 
+describe("validateEdit — html5 JS syntax", () => {
+  test("valid JS passes without issue", () => {
+    const edit = baseEdit();
+    edit.timeline.tracks[0].clips[0].asset = {
+      type: "html5",
+      html: "<div>hi</div>",
+      js: "gsap.to('.x',{opacity:1,duration:0.6});",
+    };
+    expect(codes(validateEdit(edit))).not.toContain("js_syntax_error");
+  });
+
+  test("JS with a syntax error is caught", () => {
+    const edit = baseEdit();
+    edit.timeline.tracks[0].clips[0].asset = {
+      type: "html5",
+      html: "<div>hi</div>",
+      js: "gsap.to('.x',{opacity:1,duration:0.6})var broken=1;",
+    };
+    const result = validateEdit(edit);
+    expect(result.ok).toBe(false);
+    const issue = result.issues.find((i) => i.code === "js_syntax_error");
+    expect(issue?.level).toBe("error");
+    expect(issue?.path).toBe("timeline.tracks[0].clips[0].asset.js");
+    expect(issue?.message).toMatch(/syntax error/);
+    expect(issue?.message).toMatch(/blank/);
+  });
+
+  test("empty js string is skipped", () => {
+    const edit = baseEdit();
+    edit.timeline.tracks[0].clips[0].asset = {
+      type: "html5",
+      html: "<div>hi</div>",
+      js: "",
+    };
+    expect(codes(validateEdit(edit))).not.toContain("js_syntax_error");
+  });
+});
+
 describe("formatIssues", () => {
   test("renders a multi-line stderr-friendly summary", () => {
     const issues = [

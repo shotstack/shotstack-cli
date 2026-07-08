@@ -158,7 +158,7 @@ This skill ships sub-references for the gnarly bits:
 - [`references/svg.md`](references/svg.md) — required attrs, supported elements
 - [`references/motion.md`](references/motion.md) — **the house motion language**: one duration scale, one ease, one stagger; choreography recipes (GSAP/CSS), the rich-text/transition mappings, and the brand kit. Read before composing any animation.
 - [`references/html5.md`](references/html5.md) — HTML5 asset: fields, preloaded libs (gsap/d3/anime/lottie), browser harness, sizing, worked examples
-- [`references/html5-snippets.md`](references/html5-snippets.md) — copy-paste motion-graphic clips: kinetic headline, count-up/price odometer, shine sweep, pulsing CTA, film grain
+- [`references/html5-snippets.md`](references/html5-snippets.md) — copy-paste motion-graphic clips: kinetic headline, value reveal, shine sweep, pulsing CTA, film grain
 - [`references/fonts.md`](references/fonts.md) — built-in fonts, Google Fonts URL pattern, custom-font workflow
 - [`references/asset-library.md`](references/asset-library.md) — placeholder videos, images, music
 - [`references/troubleshooting.md`](references/troubleshooting.md) — common errors and fixes

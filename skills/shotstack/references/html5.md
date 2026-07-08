@@ -23,8 +23,8 @@ This is the **modern replacement for the deprecated `html` asset.** `html5` runs
 |---|---|---|---|
 | `type` | Yes | `"html5"` | Discriminator. |
 | `html` | Yes | string | Body markup. Supports merge fields (`{{title}}`). |
-| `css` | No | string | Stylesheet. Inlined into the iframe `<head>`. |
-| `js` | No | string | Script. Runs after libraries are preloaded. |
+| `css` | No | string | Stylesheet. Inlined into the iframe `<head>`. Supports merge fields. |
+| `js` | No | string | Script. Runs after libraries are preloaded. Supports merge fields. |
 
 Clip-level `width` and `height` set the iframe's pixel dimensions. They default to the edit's natural size.
 
@@ -56,7 +56,9 @@ These cover ~95% of motion-graphics use cases. **You can't load other libraries 
 
 ## The browser harness (deterministic auto-seek)
 
-Frames are captured by **seeking** the animation to each timestamp, not by playing in real time — so your animation must be **seekable**. GSAP (timelines or tweens), anime.js, Lottie, and CSS (`@keyframes`, transitions, `Element.animate()`) are all driven automatically. Anything time-driven that isn't seekable gives a frozen or wrong frame: never use `setTimeout`, `setInterval`, `requestAnimationFrame` loops, `Date.now()` / `performance.now()`, or `gsap.call()`. For "different content at different times" (countdowns, tickers, scene swaps) use the staggered-CSS pattern (see the countdown example) or an `onUpdate` tween (see the count-up snippet).
+Frames are captured by **seeking** the animation to each timestamp, not by playing in real time — so your animation must be **seekable**. GSAP (timelines or tweens), anime.js, Lottie, and CSS (`@keyframes`, transitions, `Element.animate()`) are all driven automatically. Anything time-driven that isn't seekable gives a frozen or wrong frame: never use `setTimeout`, `setInterval`, `requestAnimationFrame` loops, `Date.now()` / `performance.now()`, or `gsap.call()`. For "different content at different times" (countdowns, tickers, scene swaps) use the staggered-CSS pattern (see the countdown example) or bake values into the HTML and animate their visibility (see the value-reveal snippet).
+
+**`onUpdate` callbacks do not fire under seek.** The harness seeks the GSAP timeline to each frame's timestamp without playing through, so `onUpdate` handlers are not invoked. Any DOM mutation made inside an `onUpdate` callback (`textContent`, `innerHTML`, class swaps, attribute changes) will not appear in the rendered video — the element stays at its initial state. **Animate CSS properties only** (opacity, transform, filter, scale) — those are applied directly by GSAP's seek. To display a value, bake it into the HTML at generation time and reveal it with an opacity/transform tween.
 
 **Duration comes from the clip's `length`** — there's no animation-duration auto-detection. Size your animation to run within (or fill) the clip's `length`.
 
@@ -156,7 +158,7 @@ Slide-in name + role bar with subtle accent. **Clip sized to the bar (560×120),
 - **Clip is the size of the bar, not the canvas** — placement is one `offset` change.
 - **`html, body, .bar` all 560×120.** No absolute positioning inside the iframe — the bar IS the iframe content.
 - One GSAP timeline drives every animation.
-- Merge fields (`{{name}}`, `{{role}}`) in the HTML, populated by **top-level** `merge[]` (sibling of `timeline`/`output`, NOT a clip property). Keeps the asset reusable.
+- Merge fields (`{{name}}`, `{{role}}`) in the HTML, populated by **top-level** `merge[]` (sibling of `timeline`/`output`, NOT a clip property). Keeps the asset reusable. Merge fields also resolve in `css` and `js` — use `{{accent}}` in CSS for brand colours, or `{{targetValue}}` inside a JS string literal for data-driven animation targets.
 - A trailing `.to({}, { duration: 3.5 })` holds the final state before the clip ends.
 
 ## Worked example: animated bar chart (D3 + GSAP)
@@ -236,6 +238,7 @@ The same pattern scales to scene transitions (each scene is a `<section>` with i
 
    If you're building something that genuinely cannot be expressed without canvas, render it as a `<video>` or `<image>` asset instead of an `html5` clip.
 2. **Mismatched dimensions.** If `clip.width = 1920` and your CSS sets `body { width: 1280px }`, content gets cropped or stretched. Pin the iframe's `html, body` dimensions to the clip dimensions.
+3. **JS syntax or runtime errors produce a blank clip with no render error.** If `asset.js` throws (syntax error or uncaught runtime error), the entire clip renders as a blank frame. The render still reports `status: "done"` with no error — there is no feedback loop. `shotstack validate` catches JS syntax errors offline; runtime errors (e.g. referencing a DOM element that doesn't exist) are silent. If a clip is blank, check the JS first: run `node --check` on the string, or wrap suspect code in `try/catch` to surface the error.
 
 ## When to use `html5` vs `rich-text`/`svg`
 

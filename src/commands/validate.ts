@@ -7,7 +7,7 @@ import { validateEdit, formatIssues, type ValidationIssue } from "../lib/validat
 export const validateCommand = new Command("validate")
   .description(
     "Validate an Edit JSON offline — schema (property names, enums, types) plus " +
-      "same-track overlaps, unloaded fonts and non-public asset URLs. No API key, no credits.",
+      "same-track overlaps, unloaded fonts, non-public asset URLs and html5 JS syntax errors. No API key, no credits.",
   )
   .argument("<file>", "Path to a Shotstack Edit JSON file")
   .option("--strict", "Treat warnings as errors (exit 1 on any warning)")

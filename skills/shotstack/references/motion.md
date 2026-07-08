@@ -113,7 +113,7 @@ tl.from('.el', { opacity: 0, y: 12, duration: 0.6, ease: 'power3.out' })  // in 
 
 ## Brand kit — set the palette once, re-skin everything
 
-Don't hardcode hex and font per snippet. Declare the brand as top-level `merge[]` fields and reference the tokens in every clip's `css`/`html` — one edit re-skins the whole video — brand tokens applied once, via Shotstack merge:
+Don't hardcode hex and font per snippet. Declare the brand as top-level `merge[]` fields and reference the tokens in every clip's `html`/`css`/`js` — one edit re-skins the whole video — brand tokens applied once, via Shotstack merge:
 
 ```json
 "merge": [
@@ -129,7 +129,7 @@ Don't hardcode hex and font per snippet. Declare the brand as top-level `merge[]
 .cta   { background: {{accent}}; }
 ```
 
-`merge` find/replace runs over the whole edit, including `html`/`css` strings, so `{{accent}}` resolves everywhere. Keep one accent and use it sparingly — a headline word, a number, a CTA, one glow — everything else neutral. **Colour is earned, never sprinkled.**
+`merge` find/replace runs over the whole edit, including `html`/`css`/`js` strings, so `{{accent}}` resolves everywhere. Keep one accent and use it sparingly — a headline word, a number, a CTA, one glow — everything else neutral. **Colour is earned, never sprinkled.**
 
 ## Motion checklist
 
