@@ -46,12 +46,24 @@ e-commerce app full of product images answers question 2).
   language (`references/motion.md`).
 - If they chose "many": add merge fields (`{{ placeholder }}`) for the parts
   that vary per video, and show one render with sample values.
-- Loop: compose, then `shotstack validate`, then preview (`shotstack studio`
-  for a human look, or straight to render), then `shotstack render edit.json
+- Loop: compose, then `shotstack validate`, then `shotstack render edit.json
   --env stage --watch`.
-- Afterwards, explain what they have: the Edit JSON is a reusable template,
-  stage renders are free, and the same JSON renders in production by
-  switching `--env`. Point to merge fields and the render API for scale.
+
+## Wrapping up
+
+- Give two links, always: the rendered MP4 and a Studio link (`shotstack
+  studio <file> --no-open`, include the printed shotstack.studio URL). The
+  Studio link lets the user tweak the design in the browser without touching
+  JSON; say so.
+- Describe what they have in plain terms: a reusable template, free stage
+  renders, the same JSON in production via `--env v1`, merge fields for the
+  parts that vary. Don't surface validator warnings or internal caveats
+  unless something is actually broken.
+- End by offering to take the next step towards what they said in the
+  interview, concretely, not a generic list. They wanted a data-driven
+  pipeline: offer to wire the template to their data source and render a
+  batch now. They mentioned their own footage: offer to upload it and swap it
+  in. One sharp offer beats five open-ended suggestions.
 
 ## Tone
 
