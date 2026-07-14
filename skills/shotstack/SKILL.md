@@ -17,6 +17,8 @@ Commands for the Shotstack video rendering API. `render` submits an Edit JSON an
 
 **Default loop — no API key required:** compose → `validate` (offline lint) → `studio` (browser preview). Only the API-backed commands (`render`, `status`, `ingest`) need a key. Reach for `render` when you specifically need a final MP4 exported in the cloud; reach for `studio` for everything else — it is the cheapest way to see an edit and the right default for any creative a human will review.
 
+**First-time user?** If this is the user's first Shotstack render (fresh setup, no Edit JSON in the project, or an open-ended ask like "render a first video"), read [`references/onboarding.md`](references/onboarding.md) and run its short discovery interview before composing anything. Skip it when the user has already specified exactly what to build.
+
 ## Authentication
 
 Save your API key once with `shotstack login` — it's stored in `~/.shotstack/credentials.json` (chmod 600), per environment, so you don't re-enter it every session:
@@ -151,6 +153,7 @@ Authoritative sources, in order of preference:
 
 This skill ships sub-references for the gnarly bits:
 
+- [`references/onboarding.md`](references/onboarding.md) — first-render discovery interview for new users: what to ask, and how answers map to a first Edit
 - [`references/ingest.md`](references/ingest.md) — uploading local files (and fetching URLs) so they can be used in an Edit: the upload→render workflow, `--watch`, status values, supported types
 - [`references/timeline.md`](references/timeline.md) — track layering, transitions, background music via audio assets
 - [`references/positioning.md`](references/positioning.md) — coordinate model, `position`/`offset` (fraction of frame, +y up), clip bounding box & `fit`, text sizing, transform order
