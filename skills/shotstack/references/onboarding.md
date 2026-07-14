@@ -1,18 +1,24 @@
 # First render: discovery interview
 
-Load this when the user is new to Shotstack: a fresh install, no Edit JSON in
-the project, no saved credentials, or an open-ended ask like "render a first
-video". Skip the interview when the user has already specified what to build.
-A fully-specified ask is its own answer.
+**The gate: do not compose an Edit until the user has answered the questions
+below (or explicitly said "just show me anything").** Setting up the CLI and
+key can proceed; writing the video cannot.
 
-A first video is most useful when it matches what the user is actually trying
-to make. A short interview gets there faster than guessing.
+"Render my first video" is not a specification. It says nothing about the
+subject, the content, the format or where the video will go. Neither does
+"set up Shotstack". If any of those are unstated, ask. A first video is only
+useful when it matches what the user is actually trying to make, and a short
+interview gets there faster than guessing.
+
+Skip the interview only when the user has stated what the video is (e.g.
+"make a 9:16 promo from the images in ./assets with the tagline X"), or has
+declined to answer.
 
 ## The interview
 
-Ask conversationally, batched into one or two messages. Skip any question the
-project already answers (e.g. a Next.js e-commerce app full of product images
-answers question 2).
+Ask conversationally, batched into one or two messages, and wait for the
+reply. Skip any question the project already answers (e.g. a Next.js
+e-commerce app full of product images answers question 2).
 
 1. **What should the video do?** Social clips, product or listing videos,
    personalised outreach, in-app content, something else? Listen for the job,

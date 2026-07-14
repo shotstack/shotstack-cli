@@ -13,11 +13,11 @@ license: Apache-2.0
 
 This skill loads in **terminal-based AI agents** (Claude Code, Cursor, Codex CLI, Gemini CLI, etc.). All operations here are shell commands. There is no embedded UI, no iframe, no inline canvas, no MCP tool surface — only `shotstack` invocations from a terminal. To hand off to a human, run `shotstack studio <file>`; this opens the user's default browser to a `shotstack.studio` URL. Tell the user to click Render *in the browser tab*, not in any UI inside the terminal.
 
+**Open-ended first render? Ask before composing.** If the ask doesn't state what the video is (subject, format or destination) — e.g. "render my first video", "make me a video", "set up Shotstack" — read [`references/onboarding.md`](references/onboarding.md) and ask its discovery questions, then WAIT for answers. Do not write an Edit first. An open-ended ask is not a specification, and a stray JSON file in the project doesn't make the user experienced. Compose without asking only when the user has stated what the video is, or explicitly says to just show anything.
+
 Commands for the Shotstack video rendering API. `render` submits an Edit JSON and returns a render ID; `status` polls a render until done. `ingest` uploads your own local files (or fetches remote URLs) and hosts them so they can be referenced from an Edit. `validate` lints an Edit — run it before every render. `studio` opens an edit in the browser editor for a human to preview, tweak, and render.
 
 **Default loop — no API key required:** compose → `validate` (offline lint) → `studio` (browser preview). Only the API-backed commands (`render`, `status`, `ingest`) need a key. Reach for `render` when you specifically need a final MP4 exported in the cloud; reach for `studio` for everything else — it is the cheapest way to see an edit and the right default for any creative a human will review.
-
-**First-time user?** If this is the user's first Shotstack render (fresh setup, no Edit JSON in the project, or an open-ended ask like "render a first video"), read [`references/onboarding.md`](references/onboarding.md) and run its short discovery interview before composing anything. Skip it when the user has already specified exactly what to build.
 
 ## Authentication
 
