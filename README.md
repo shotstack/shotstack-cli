@@ -116,6 +116,31 @@ shotstack ingest delete <source-id>                # remove a source from storag
 
 Sources are stored until you delete them. The bare `upload`/`fetch` commands return only an id — use `--watch` (or `ingest status`) to get the hosted URL once ingestion is `ready`.
 
+### `shotstack template <list|get|create|update|delete>`
+
+Read and write templates saved to your Shotstack account. A template's content is just an Edit JSON (`timeline`, `output`, `merge`), so these round-trip with `render` and with templates you design in Studio.
+
+```sh
+# List your saved templates (id and name), newest first
+shotstack template list
+shotstack template list --output json     # full metadata (id, name, created, updated)
+
+# Fetch a saved template's Edit JSON by id (output is the edit — pipes into render)
+shotstack template get <id>
+shotstack template get <id> > my-template.json && shotstack render my-template.json
+shotstack template get <id> --env stage --output json    # compact JSON on stdout
+
+# Save a local edit as a new template; prints the new id
+shotstack template create my-template.json --name "Promo v1"
+
+# Overwrite a saved template (optionally rename it)
+shotstack template update <id> my-template.json
+shotstack template update <id> my-template.json --name "Promo v2"
+
+# Delete a saved template
+shotstack template delete <id>
+```
+
 ### `shotstack login` / `shotstack logout`
 
 Saves (or removes) your API key so it persists across shell sessions. Keys are stored per environment in `~/.shotstack/credentials.json`.
