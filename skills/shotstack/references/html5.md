@@ -82,7 +82,7 @@ The iframe renders under a strict Content-Security-Policy (`default-src 'none'`)
    ```
 2. **Use a system family** (`system-ui`, `Arial`, `Georgia`, …) — resolves in the render browser with no load.
 
-An unresolved family silently falls back to the browser default — the render won't fail, but the text won't be your font. For a single styled line, a `rich-text` asset (which *does* use `timeline.fonts[]`; verified catalogue in `references/fonts.md`) is simpler than a `data:` font embed.
+An unresolved family silently falls back to the browser default — the render won't fail, but the text won't be your font. For a single styled line, a `rich-text` asset (which *does* use `timeline.fonts[]`; verified catalogue in `shared/agent-core.md`) is simpler than a `data:` font embed.
 
 ## Sizing
 
