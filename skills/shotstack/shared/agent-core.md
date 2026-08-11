@@ -266,7 +266,26 @@ Use **custom Google Fonts via `timeline.fonts[]`**. System fonts (`Arial`, `Helv
 
 **CRITICAL: Do NOT construct or fabricate Google Fonts URLs from memory.** Google rotates them (`v26 → v31 → ...`) and the hash filenames change with each version. Any URL you reconstruct from training data is almost certainly a 404. **Use ONLY the verified entries below, copied verbatim.**
 
-See `references/fonts.md` for how to source fonts from the Studio SDK catalogue and the built-in fallback fonts.
+### Verified font catalogue (12 fonts)
+
+Paste the **url** into `timeline.fonts[].src`, paste the **family** into `asset.font.family`.
+
+| Font (style) | family (use in `font.family`) | url (use in `timeline.fonts[].src`) |
+|---|---|---|
+| Inter (sans, variable) | `UcCo3FwrK3iLTfvlaQc78lA2` | `https://fonts.gstatic.com/s/inter/v20/UcCo3FwrK3iLTfvlaQc78lA2.ttf` |
+| Roboto (sans, variable) | `KFOmCnqEu92Fr1Me5WZLCzYlKw` | `https://fonts.gstatic.com/s/roboto/v50/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf` |
+| Open Sans (sans, variable) | `mem8YaGs126MiZpBA-U1UpcaXcl0Aw` | `https://fonts.gstatic.com/s/opensans/v44/mem8YaGs126MiZpBA-U1UpcaXcl0Aw.ttf` |
+| Montserrat (sans, variable) | `JTUSjIg1_i6t8kCHKm45xW5rygbi49c` | `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf` |
+| Poppins (sans) | `pxiEyp8kv8JHgFVrFJDUc1NECPY` | `https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrFJDUc1NECPY.ttf` |
+| DM Sans (sans, variable) | `rP2Hp2ywxg089UriOZSCHBeHFl0` | `https://fonts.gstatic.com/s/dmsans/v17/rP2Hp2ywxg089UriOZSCHBeHFl0.ttf` |
+| Nunito (sans, variable) | `XRXV3I6Li01BKof4MuyAbsrVcA` | `https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKof4MuyAbsrVcA.ttf` |
+| Raleway (sans, variable) | `1Ptug8zYS_SKggPN-CoCTqluHfE` | `https://fonts.gstatic.com/s/raleway/v37/1Ptug8zYS_SKggPN-CoCTqluHfE.ttf` |
+| Oswald (display, variable) | `TK3iWkUHHAIjg75GHjUHte5fKg` | `https://fonts.gstatic.com/s/oswald/v57/TK3iWkUHHAIjg75GHjUHte5fKg.ttf` |
+| Bebas Neue (display) | `JTUSjIg69CK48gW7PXooxW5rygbi49c` | `https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXooxW5rygbi49c.ttf` |
+| Anton (display) | `1Ptgg87LROyAm0K08i4gS7lu` | `https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm0K08i4gS7lu.ttf` |
+| Playfair Display (serif, variable) | `nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU` | `https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU.ttf` |
+
+Variable fonts cover the full weight range (100–900) from a single URL — set `font.weight` on the clip. For a font not listed: copy an entry **verbatim** from the Studio SDK catalogue (~400 fonts) at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>, or open the font on <https://fonts.google.com>, view the CSS, and copy the exact `.ttf` URL from the `@font-face` `src`. Never hand-edit the version or hash segments.
 
 ### Usage example
 
@@ -297,7 +316,7 @@ The `font.family` value MUST match the `family` column in the table above (it's 
 ## Top 5 mistakes
 
 1. **Reverse track order.** `tracks[0]` is the TOP layer, not the bottom. Captions go in early tracks; backgrounds go in late tracks.
-2. **System fonts.** `Arial`, `Helvetica`, `Times New Roman`, etc. are not installed. Use Google Fonts via `timeline.fonts[]` (preferred) or one of the built-in fonts in `references/fonts.md`.
+2. **System fonts.** `Arial`, `Helvetica`, `Times New Roman`, etc. are not installed. Use Google Fonts via `timeline.fonts[]`, copied verbatim from the verified catalogue in the Fonts section.
 3. **Captions fill the whole frame.** A `rich-caption` clip without `width`, `height`, and `fit: "none"` covers the entire output. Use a named preset from `references/caption.md`.
 4. **`<text>` inside an SVG asset.** Raw `<text>` is unsupported. Use a `rich-text` asset for any text content; reserve SVG for shapes only.
 5. **Composing custom caption styles when presets exist.** The five named presets (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) cover the common styles. Use one verbatim from `references/caption.md` unless the user asks for something specific.

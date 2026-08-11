@@ -34,26 +34,9 @@ Load a font from a public URL via `timeline.fonts[]`, then reference its **file 
 
 The `font.family` value is the URL's filename without extension, and it **must** match the URL's basename exactly. For URL `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf`, family = `JTUSjIg1_i6t8kCHKm45xW5rygbi49c`. If `family` and the URL basename diverge, the font silently fails to load.
 
-## Verified font catalogue (12 fonts)
+## Verified font catalogue
 
-Copied verbatim from the Studio SDK catalogue. Paste the **url** into `timeline.fonts[].src`, paste the **family** into `asset.font.family`.
-
-| Font (style) | family (use in `font.family`) | url (use in `timeline.fonts[].src`) |
-|---|---|---|
-| Inter (sans, variable) | `UcCo3FwrK3iLTfvlaQc78lA2` | `https://fonts.gstatic.com/s/inter/v20/UcCo3FwrK3iLTfvlaQc78lA2.ttf` |
-| Roboto (sans, variable) | `KFOmCnqEu92Fr1Me5WZLCzYlKw` | `https://fonts.gstatic.com/s/roboto/v50/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf` |
-| Open Sans (sans, variable) | `mem8YaGs126MiZpBA-U1UpcaXcl0Aw` | `https://fonts.gstatic.com/s/opensans/v44/mem8YaGs126MiZpBA-U1UpcaXcl0Aw.ttf` |
-| Montserrat (sans, variable) | `JTUSjIg1_i6t8kCHKm45xW5rygbi49c` | `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf` |
-| Poppins (sans) | `pxiEyp8kv8JHgFVrFJDUc1NECPY` | `https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrFJDUc1NECPY.ttf` |
-| DM Sans (sans, variable) | `rP2Hp2ywxg089UriOZSCHBeHFl0` | `https://fonts.gstatic.com/s/dmsans/v17/rP2Hp2ywxg089UriOZSCHBeHFl0.ttf` |
-| Nunito (sans, variable) | `XRXV3I6Li01BKof4MuyAbsrVcA` | `https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKof4MuyAbsrVcA.ttf` |
-| Raleway (sans, variable) | `1Ptug8zYS_SKggPN-CoCTqluHfE` | `https://fonts.gstatic.com/s/raleway/v37/1Ptug8zYS_SKggPN-CoCTqluHfE.ttf` |
-| Oswald (display, variable) | `TK3iWkUHHAIjg75GHjUHte5fKg` | `https://fonts.gstatic.com/s/oswald/v57/TK3iWkUHHAIjg75GHjUHte5fKg.ttf` |
-| Bebas Neue (display) | `JTUSjIg69CK48gW7PXooxW5rygbi49c` | `https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXooxW5rygbi49c.ttf` |
-| Anton (display) | `1Ptgg87LROyAm0K08i4gS7lu` | `https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm0K08i4gS7lu.ttf` |
-| Playfair Display (serif, variable) | `nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU` | `https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU.ttf` |
-
-Variable fonts (most of the above) cover the full weight range (100–900) from a single URL — set `font.weight` in the clip. For the non-variable fonts (Poppins, Bebas Neue, Anton) the registered URL is weight 400; the SDK falls back gracefully when you request a bolder weight.
+The verified 12-font catalogue lives in [`shared/agent-core.md`](../shared/agent-core.md) (Fonts section) — the single copy, so it can't drift. Copy entries from there verbatim. Non-variable fonts in that table (Poppins, Bebas Neue, Anton) register at weight 400; the SDK falls back gracefully when you request a bolder weight.
 
 ### Sourcing more fonts
 
