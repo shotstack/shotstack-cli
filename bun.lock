@@ -4,7 +4,7 @@
     "": {
       "name": "@shotstack/cli",
       "dependencies": {
-        "@shotstack/schemas": "^1.17.0",
+        "@shotstack/schemas": "^1.19.0",
         "commander": "^12.1.0",
         "zod": "^4.4.3",
       },
@@ -15,7 +15,7 @@
     },
   },
   "packages": {
-    "@shotstack/schemas": ["@shotstack/schemas@1.17.0", "", { "dependencies": { "zod": "^4.2.0" } }, "sha512-ilFAJcO8vZ9X/vC0uri8ZX+cM1BMnvx0cnUiU4sdVbPmJVdN0uta2XBL1rYWC1G/0GZUSZc9/ql0EwDSk0n4mw=="],
+    "@shotstack/schemas": ["@shotstack/schemas@1.19.0", "", { "dependencies": { "zod": "^4.2.0" } }, "sha512-j9VXLg5FqH8nP+72k7SGJlHDWyuwZv74N6WJoXcgW7VW4Epdx7T/q2FUmuMPYvvJej5dwmksto1kMEw33PesOg=="],
 
     "@types/bun": ["@types/bun@1.3.13", "", { "dependencies": { "bun-types": "1.3.13" } }, "sha512-9fqXWk5YIHGGnUau9TEi+qdlTYDAnOj+xLCmSTwXfAIqXr2x4tytJb43E9uCvt09zJURKXwAtkoH4nLQfzeTXw=="],
 
