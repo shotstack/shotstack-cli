@@ -110,6 +110,8 @@ Compose from this rather than round-tripping the full schema — these are the v
 **`transition.in` / `.out`** — each also takes a `Slow`/`Fast` suffix (e.g. `fadeSlow`, `slideUpFast`):
 `none` `fade` `reveal` `wipeLeft` `wipeRight` `slideLeft` `slideRight` `slideUp` `slideDown` `carouselLeft` `carouselRight` `carouselUp` `carouselDown` `shuffle*` (eight corners, e.g. `shuffleTopRight`) `zoom`.
 
+**Keyframes** — `scale`, `opacity`, `offset.x`/`.y`, `transform.rotate.angle`, `transform.skew.x`/`.y`, an asset's `volume` and a video's `speed` take a Tween array in place of a number: `[{ "from": 1, "to": 3, "start": 0, "length": 1, "interpolation": "bezier", "easing": "easeInOut" }]`. `start` is seconds into the clip; `interpolation` defaults to `linear`. A `speed` array ramps playback without changing the clip's `length`: the source starts at `trim`, the first `from` holds before the first tween and the last `to` after the last, `0` freezes and a negative speed reverses.
+
 **`rich-text` asset** — the styled-text workhorse (use instead of `text`/`title`):
 
 ```json
