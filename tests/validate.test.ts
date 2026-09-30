@@ -157,6 +157,39 @@ describe("validateEdit — fonts", () => {
   test("a loaded family produces no warning", () => {
     expect(codes(validateEdit(baseEdit()))).not.toContain("font_not_loaded");
   });
+
+  const LUCKIEST_URL = "https://fonts.gstatic.com/s/luckiestguy/v25/_gP_1RrxsjcxVyin9l9n_j2RStR3qDpraA.ttf";
+  const ELITE_URL = "https://shotstack-assets.s3.amazonaws.com/fonts/SpecialElite-Regular.ttf";
+  const fontIssue = (family: string, fonts: string[]) => {
+    const edit = baseEdit();
+    edit.timeline.fonts = fonts.map((src) => ({ src }));
+    edit.timeline.tracks[0].clips[0].asset.font.family = family;
+    return validateEdit(edit).issues.find((i) => i.code === "font_not_loaded");
+  };
+
+  test("the filename matches ignoring case and a weight suffix", () => {
+    expect(fontIssue("_gp_1rrxsjcxvyin9l9n_j2rstr3qdpraa", [LUCKIEST_URL, ELITE_URL])).toBeUndefined();
+    expect(fontIssue("SpecialElite-Regular", [LUCKIEST_URL, ELITE_URL])).toBeUndefined();
+    expect(fontIssue("specialelite", [LUCKIEST_URL, ELITE_URL])).toBeUndefined();
+  });
+
+  test("no fonts loaded says it renders in Roboto", () => {
+    expect(fontIssue("Helvetica", [])?.message).toMatch(/renders in Roboto/);
+  });
+
+  test("a family name with several fonts loaded warns and lists the filenames", () => {
+    const issue = fontIssue("Luckiest Guy", [LUCKIEST_URL, ELITE_URL]);
+    expect(issue?.level).toBe("warning");
+    expect(issue?.message).toMatch(/'_gP_1RrxsjcxVyin9l9n_j2RStR3qDpraA', 'SpecialElite-Regular'/);
+    expect(issue?.message).toMatch(/renders in Roboto unless/);
+  });
+
+  test("a family name with one font loaded suggests its filename", () => {
+    const issue = fontIssue("Luckiest Guy", [LUCKIEST_URL]);
+    expect(issue?.level).toBe("warning");
+    expect(issue?.suggestion).toBe("_gP_1RrxsjcxVyin9l9n_j2RStR3qDpraA");
+    expect(issue?.message).toMatch(/sole entry/);
+  });
 });
 
 describe("validateEdit — asset URLs", () => {
