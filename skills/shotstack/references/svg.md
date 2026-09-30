@@ -11,7 +11,7 @@ The `svg` asset type embeds raw SVG markup into a clip. Use it for vector shapes
 
 ## Required attributes
 
-Every SVG asset's `src` is raw markup (not a URL) and **must include all four** of:
+Every SVG asset's `src` is the markup itself, starting with `<svg`. A URL or `data:image/svg+xml` URI isn't accepted: Studio shows an empty placeholder and the render fails. (Data URIs belong inside `html5` assets only.) The markup **must include all four** of:
 
 - `xmlns="http://www.w3.org/2000/svg"`
 - `viewBox` defining the coordinate space
