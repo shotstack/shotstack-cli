@@ -114,7 +114,7 @@ Custom fonts loaded from a URL, available to all `rich-text` and `rich-caption` 
 }
 ```
 
-The `font.family` you reference in an asset must be the **basename of the file** (without `.ttf`/`.otf`/`.woff`).
+Reference a loaded font in `font.family` by the **basename of the file** (without `.ttf`/`.otf`/`.woff`). It always matches; a family that matches nothing renders in Roboto without an error.
 
 For the Montserrat URL above, `font.family` is `JTUSjIg1_i6t8kCHKm45xW5rygbi49c`.
 

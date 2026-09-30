@@ -264,7 +264,7 @@ One overlay is a `rich-text` job. **Several videos "in different styles" is not*
 
 ## Fonts
 
-Use **custom Google Fonts via `timeline.fonts[]`**. System fonts (`Arial`, `Helvetica`, `Times New Roman`) are NOT installed and will fail with "Font not found".
+Use **custom Google Fonts via `timeline.fonts[]`**. System fonts (`Arial`, `Helvetica`, `Times New Roman`) are NOT installed; text set in them renders in Roboto, with no render error.
 
 **CRITICAL: Do NOT construct or fabricate Google Fonts URLs from memory.** Google rotates them (`v26 → v31 → ...`) and the hash filenames change with each version. Any URL you reconstruct from training data is almost certainly a 404. **Use ONLY the verified entries below, copied verbatim.**
 
@@ -313,7 +313,7 @@ Variable fonts cover the full weight range (100–900) from a single URL — set
 }
 ```
 
-The `font.family` value MUST match the `family` column in the table above (it's the filename basename without `.ttf`). If `family` and the URL's basename don't match, the font will not load.
+Use the `family` column from the table above: the URL's filename without `.ttf`, matched ignoring case. The family name stored inside the font file also matches, but it isn't always the name on Google Fonts (Space Grotesk's file calls itself `Space Grotesk Light`), so the filename is the safe choice. A `font.family` that matches nothing renders in Roboto with no error. The exception is a lone entry in `timeline.fonts[]`, which is used whatever `font.family` says, so a wrong name only shows once a second font is added. `shotstack validate` warns on any `font.family` that isn't a built-in or a loaded filename.
 
 ## Top 5 mistakes
 
