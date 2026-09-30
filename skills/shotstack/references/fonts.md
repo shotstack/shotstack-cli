@@ -32,7 +32,11 @@ Load a font from a public URL via `timeline.fonts[]`, then reference its **file 
 }
 ```
 
-The `font.family` value is the URL's filename without extension, and it **must** match the URL's basename exactly. For URL `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf`, family = `JTUSjIg1_i6t8kCHKm45xW5rygbi49c`. If `family` and the URL basename diverge, the font silently fails to load.
+The `font.family` value is the URL's filename without extension, matched ignoring case (a `-Regular` or `-Bold` style suffix can also be dropped). For URL `https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm45xW5rygbi49c.ttf`, family = `JTUSjIg1_i6t8kCHKm45xW5rygbi49c`.
+
+The family name stored inside the font file also matches, but it isn't always the name on Google Fonts: a variable font whose default weight isn't Regular stores the weight too (Space Grotesk's file calls itself `Space Grotesk Light`). Prefer the filename, which can't differ from what you loaded.
+
+A `font.family` that matches nothing renders in Roboto without a render error. The exception is a lone entry in `timeline.fonts[]`, which is used whatever `font.family` says, so a wrong name stays hidden until a second font is added. `shotstack validate` warns on any `font.family` that isn't a built-in or a loaded filename.
 
 ## Verified font catalogue
 
@@ -77,9 +81,9 @@ These twelve fonts are pre-installed in the render engine and don't need a `time
 
 The renderer accepts both spaced (`Open Sans`) and concatenated (`OpenSans`) family names for these.
 
-## Why system fonts fail
+## Why system fonts don't work
 
-System fonts like `Arial`, `Helvetica`, `Times New Roman`, `Courier New`, etc. are **not installed** on the render engine. Using them produces a "Font not found" error at render time.
+System fonts like `Arial`, `Helvetica`, `Times New Roman`, `Courier New`, etc. are **not installed** on the render engine. Text set in them renders in Roboto, with no render error.
 
 **Wrong:**
 

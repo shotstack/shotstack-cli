@@ -7,7 +7,7 @@ Common errors and the fix for each. **Catch most of them before rendering:** `sh
 - "Unknown property: alignment" / wrong property names
 - "Invalid option: expected one of top|middle|bottom"
 - Video looks stretched / squishing after rendering
-- "Font not found"
+- Text renders in Roboto instead of your font
 - Captions cover the whole frame
 - Clips flicker / "clips overlap" on one track
 - Timeline renders but layers are wrong
@@ -54,11 +54,11 @@ The Shotstack `fit` enum is **inverted from CSS**:
 
 **Fix:** use `fit: "crop"` (or omit `fit` — `crop` is the default) for the typical "scale and crop" behaviour you'd expect from CSS `object-fit: cover`.
 
-## "Font not found"
+## Text renders in Roboto instead of your font
 
-You used a font name that isn't in the built-in list and didn't load it via `timeline.fonts[]`.
+`font.family` didn't match any font, so the renderer fell back to Roboto without an error. Either the font isn't built in and wasn't loaded via `timeline.fonts[]`, or `family` doesn't match the loaded font: a typo, or a name that differs from the one stored in the font file.
 
-**Fix:** add the font URL to `timeline.fonts[]` and use the file basename as `family`. See `references/fonts.md`. If you really need a system font, use `Roboto` (built-in) as a substitute.
+**Fix:** add the font URL to `timeline.fonts[]` and use the file basename as `family`. `shotstack validate` flags a `family` that isn't a built-in or a loaded filename. See `references/fonts.md`. If you really need a system font, use `Roboto` (built-in) as a substitute.
 
 ## Captions cover the whole frame
 
