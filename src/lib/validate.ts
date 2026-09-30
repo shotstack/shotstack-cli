@@ -39,6 +39,10 @@ const BUILTIN_FONTS = new Set([
   "sueellenfrancisco", "uni neue", "unineue", "work sans", "worksans",
 ]);
 
+// Weight/style suffix the render engine strips from a font filename before matching.
+const FILENAME_WEIGHT_SUFFIX =
+  /-(?:(?:Extra(?:Light|Bold)|SemiBold|Regular|Medium|Light|Black|Bold|Thin|Heavy)(?:Italic|Oblique)?|(?:Italic|Oblique))$/i;
+
 // Asset types whose `src` must be a public, fetchable URL.
 const URL_SRC_TYPES = new Set(["image", "video", "audio", "luma"]);
 
@@ -93,12 +97,11 @@ function semanticChecks(input: unknown): ValidationIssue[] {
   const tracks = timeline?.tracks;
   if (!Array.isArray(tracks)) return issues;
 
-  // Custom font families that are actually loaded.
-  const loaded = new Set<string>();
+  const loaded: FontFileNames[] = [];
   if (Array.isArray(timeline?.fonts)) {
     for (const font of timeline.fonts) {
-      const base = fontBasename(font?.src);
-      if (base) loaded.add(base);
+      const names = fontFileNames(font?.src);
+      if (names) loaded.push(names);
     }
   }
 
@@ -136,17 +139,8 @@ function semanticChecks(input: unknown): ValidationIssue[] {
 
       const family = asset?.font?.family;
       if (typeof family === "string" && family.length > 0) {
-        if (!loaded.has(family) && !BUILTIN_FONTS.has(family.toLowerCase())) {
-          issues.push({
-            path: `${at}.asset.font.family`,
-            code: "font_not_loaded",
-            level: "warning",
-            message:
-              `font.family '${family}' is neither a built-in font nor loaded via ` +
-              `timeline.fonts[] — it will fail at render with "Font not found". Add its ` +
-              `URL to timeline.fonts[] (family must equal the URL's file basename).`,
-          });
-        }
+        const fontIssue = checkFontFamily(family, loaded, `${at}.asset.font.family`);
+        if (fontIssue) issues.push(fontIssue);
       }
 
       // --- html5 JS syntax check --------------------------------------------
@@ -191,12 +185,71 @@ function semanticChecks(input: unknown): ValidationIssue[] {
   return issues;
 }
 
-function fontBasename(src: unknown): string | null {
+interface FontFileNames {
+  /** Filename without extension. */
+  full: string;
+  /** Filename without extension or weight suffix ("SpecialElite-Regular" → "SpecialElite"). */
+  base: string;
+}
+
+// The render engine matches font.family case-insensitively against each loaded font's filename
+// or the family name stored inside the file. validate can only see filenames, and the stored name
+// can differ from the one on Google Fonts. An unmatched family renders in Roboto without an error,
+// unless it is the only loaded font, which is then used whatever font.family says.
+function checkFontFamily(family: string, loaded: FontFileNames[], path: string): ValidationIssue | null {
+  const wanted = family.toLowerCase();
+  if (BUILTIN_FONTS.has(wanted)) return null;
+  if (loaded.some((f) => wanted === f.full.toLowerCase() || wanted === f.base.toLowerCase())) return null;
+
+  const storedName =
+    `the exact family name stored in the font file, which can differ from the name on Google Fonts ` +
+    `(Space Grotesk's file says 'Space Grotesk Light')`;
+
+  if (loaded.length === 0) {
+    return {
+      path,
+      code: "font_not_loaded",
+      level: "warning",
+      message:
+        `font.family '${family}' is neither a built-in font nor loaded via timeline.fonts[] — ` +
+        `it renders in Roboto. Add the font's URL to timeline.fonts[] and use its filename as font.family.`,
+    };
+  }
+
+  if (loaded.length === 1) {
+    return {
+      path,
+      code: "font_not_loaded",
+      level: "warning",
+      message:
+        `font.family '${family}' doesn't match the timeline.fonts[] filename. It renders in that font ` +
+        `only because it's the sole entry; add another font and it falls back to Roboto unless it's ` +
+        `${storedName}. Use the filename to be sure.`,
+      suggestion: loaded[0]!.full,
+    };
+  }
+
+  return {
+    path,
+    code: "font_not_loaded",
+    level: "warning",
+    message:
+      `font.family '${family}' doesn't match any timeline.fonts[] filename ` +
+      `(${loaded.map((f) => `'${f.full}'`).join(", ")}). It renders in Roboto unless it's ` +
+      `${storedName}. Use the filename to be sure.`,
+  };
+}
+
+function fontFileNames(src: unknown): FontFileNames | null {
   if (typeof src !== "string") return null;
-  const noQuery = src.split("?")[0] ?? src;
-  const base = noQuery.split("/").pop() ?? "";
-  const stripped = base.replace(/\.(ttf|otf|woff2?|eot)$/i, "");
-  return stripped.length ? stripped : null;
+  let filename = src.split(/[?#]/, 1)[0]!.split("/").pop() ?? "";
+  try {
+    filename = decodeURIComponent(filename);
+  } catch {
+    // Malformed escape: keep the raw filename, as the render engine does.
+  }
+  const full = filename.replace(/\.(ttf|otf|woff2?|eot)$/i, "");
+  return full.length ? { full, base: full.replace(FILENAME_WEIGHT_SUFFIX, "") } : null;
 }
 
 function checkJsSyntax(js: string, path: string): ValidationIssue | null {
