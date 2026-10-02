@@ -6,6 +6,7 @@ import { studioCommand } from "./commands/studio.ts";
 import { ingestCommand } from "./commands/ingest.ts";
 import { templateCommand } from "./commands/template.ts";
 import { validateCommand } from "./commands/validate.ts";
+import { modelsCommand } from "./commands/models.ts";
 import { loginCommand, logoutCommand } from "./commands/auth.ts";
 import { ApiError } from "./http/client.ts";
 import { MissingApiKeyError } from "./http/auth.ts";
@@ -22,6 +23,7 @@ const program = new Command()
   .addCommand(ingestCommand)
   .addCommand(templateCommand)
   .addCommand(validateCommand)
+  .addCommand(modelsCommand)
   .addCommand(loginCommand)
   .addCommand(logoutCommand)
   .addCommand(feedbackCommand);
