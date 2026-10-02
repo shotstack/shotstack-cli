@@ -152,6 +152,18 @@ shotstack models seedance-2.0-text-to-video    # price and the JSON Schema for i
 shotstack models --output json
 ```
 
+### `shotstack generate <model> <prompt>`
+
+Generates one image, video or audio asset from a prompt and prints its URL, without rendering an edit. `--options` takes the model's options as a JSON object (see `shotstack models <model>`). `--length` sets the clip length in seconds for models that generate to a duration. Generation is billed in credits on stage as well as v1. Identical requests share one job and its cached result, so repeating a request returns the same job instead of generating and charging again.
+
+```sh
+shotstack generate nano-banana-2 "A ceramic mug on a walnut desk, soft window light" --watch
+# → processing  8a1f2c3d-…
+# → done  https://…/8a1f2c3d.png
+shotstack generate seedance-2.0-text-to-video "Waves break over black sand at dusk" \
+  --options '{"resolution":"480p"}' --length 5 --watch --output json
+```
+
 ### `shotstack login` / `shotstack logout`
 
 Saves (or removes) your API key so it persists across shell sessions. Keys are stored per environment in `~/.shotstack/credentials.json`.
