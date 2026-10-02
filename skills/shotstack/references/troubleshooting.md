@@ -119,7 +119,7 @@ Then run `shotstack feedback` — the dossier captures the response body and the
 
 ## Render takes much longer than expected
 
-Renders containing AI-generation assets (`text-to-image`, `image-to-video`) take longer because the engine waits for the AI job to complete before rendering. Renders with very long source videos or many tracks also take longer.
+Renders containing AI-generated assets (an `image`, `video` or `audio` asset with a `prompt`) take longer because the engine waits for the AI job to complete before rendering. Renders with very long source videos or many tracks also take longer.
 
 **Fix:** if you're iterating quickly, render with `output.resolution: "preview"` first (512×288 @ 15fps) to validate the timeline shape before spending credits on full-resolution output.
 

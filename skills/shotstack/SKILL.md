@@ -108,6 +108,8 @@ shotstack generate seedance-2.0-text-to-video "Waves break over black sand at du
 
 **Generation costs credits on stage as well as v1.** Before generating, tell the user the model and its price from `shotstack models <id>`, and wait for a yes. Identical requests share one job and its cached result: repeating a request while it runs, or after it finishes, returns the same job without charging again. That is also how to pick up a job started without `--watch`. Sending a failed generation again retries it, and that is charged.
 
+**Read [`references/generation.md`](references/generation.md) before writing a prompt.** It covers what each model responds to, when to put text in a `rich-text` layer instead of the image, and how to size and chain generations inside an edit.
+
 ## Default workflow: preview in Studio (no key, no credits)
 
 **`shotstack studio <file>` is the default way to look at an edit** — prefer it over `render` unless you specifically need a cloud-exported MP4. It posts the JSON to https://shotstack.studio and opens `https://shotstack.studio/s/<slug>` in the browser — a short, shareable URL. No API key, no render credits charged; it previews client-side, so it works with no key. The human plays, edits, and decides whether to spend credits on a render.
@@ -186,6 +188,7 @@ This skill ships sub-references for the gnarly bits:
 - [`references/html5.md`](references/html5.md) — HTML5 asset: fields, preloaded libs (gsap/d3/anime/lottie), browser harness, sizing, worked examples
 - [`references/html5-snippets.md`](references/html5-snippets.md) — copy-paste motion-graphic clips: kinetic headline, value reveal, shine sweep, pulsing CTA, film grain
 - [`references/fonts.md`](references/fonts.md) — built-in fonts, Google Fonts URL pattern, custom-font workflow
+- [`references/generation.md`](references/generation.md) — per-model prompting craft for AI-generated video, images, speech and music, and what a timeline adds to a prompt. Read before writing any `prompt`.
 - [`references/asset-library.md`](references/asset-library.md) — placeholder videos, images, music
 - [`references/troubleshooting.md`](references/troubleshooting.md) — common errors and fixes
 
