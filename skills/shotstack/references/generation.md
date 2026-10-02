@@ -18,7 +18,7 @@ Set an asset's `prompt` and `model` and the asset is generated at render time; `
 
 There is no prompt-length limit on the model itself. The API caps `prompt` at 4,000 characters.
 
-**Choosing a generation.** 2.5 for duration (30s against 2.0's 15s), for more reference inputs, and for better prompt adherence. **2.0 for 4K delivery** — it is the only one with a 4K tier — and for cost, running 36–41% cheaper per second at every shared resolution.
+**Choosing a generation.** 2.5 for duration: up to 30 seconds in one take, against 2.0's 15. ByteDance also claims better prompt adherence for 2.5, which its own pages don't corroborate. **2.0 for cost**: it is cheaper per second at every resolution, and both top out at 1080p. `shotstack models` has the current rates.
 
 ## Images — Nano Banana
 

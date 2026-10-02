@@ -252,7 +252,7 @@ Set `prompt` and `model` on an `image`, `video` or `audio` asset and it is gener
 { "asset": { "type": "video", "prompt": "Slow dolly across a rain-soaked neon street at night", "model": "seedance-2.0-text-to-video", "options": { "resolution": "720p" } }, "start": 0, "length": 5 }
 ```
 
-The models endpoint (`GET /models`) lists each model, whether the account can use it, its price, and the JSON Schema for its `options`. Options outside that schema are rejected. To animate a still, use a model that accepts a starting image and put the image URL in `options.inputSrc`.
+The models endpoint (`GET /models`) lists each model, whether the account can use it, its price, and the JSON Schema for its `options`. Options outside that schema are rejected. To animate a still, use an image-to-video model and put the image URL in `options.startSrc` (`inputSrc` on the original image-to-video models).
 
 Generation is billed per asset **even on the stage endpoint**, which is otherwise free. Renders containing AI assets take longer, because the render waits for each generation.
 
