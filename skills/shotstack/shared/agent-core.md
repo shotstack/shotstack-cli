@@ -218,17 +218,14 @@ Use only the **current** asset types; the deprecated ones still parse but should
 
 | Type | Purpose |
 |---|---|
-| `video` | Video file (mp4, mov, webm). |
-| `image` | Static image — `jpg`, `png`, `webp`, `gif`, `bmp`, `tiff`. |
-| `audio` | Audio clip placed at a specific time on the timeline. |
+| `video` | Video file (mp4, mov, webm), or AI-generated from a `prompt`. |
+| `image` | Static image — `jpg`, `png`, `webp`, `gif`, `bmp`, `tiff` — or AI-generated from a `prompt`. |
+| `audio` | Audio clip placed at a specific time on the timeline, or AI-generated speech or music from a `prompt`. |
 | `rich-text` | Styled text overlay with full typography control. **Use this instead of `text`/`html`/`title`.** |
 | `svg` | Vector graphics from raw SVG markup: `src` starts with `<svg`, never a URL or `data:` URI (the render fails). See `references/svg.md`. |
 | `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap/d3/anime/lottie. See `references/html5.md`. **Never use the deprecated `html` asset.** |
 | `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See `references/caption.md`. |
 | `luma` | Luma matte for masking effects. |
-| `image-to-video` | **AI**: animate a still image into a short video clip. Billed per generation. |
-| `text-to-image` | **AI**: generate an image from a text prompt. Billed per generation. |
-| `text-to-speech` | **AI**: generate speech from a text prompt. Billed per generation. |
 
 `timeline.fonts[]` is a separate field for custom font URLs (not an asset type).
 
@@ -236,7 +233,7 @@ For background music, **use an `audio` asset on its own track** with `length: "e
 
 ### Deprecated — do not use
 
-`text`, `title`, `caption`, `html`, `shape`. They still parse but produce inferior output. Replace with:
+`text`, `title`, `caption`, `html`, `shape`. They still parse but produce inferior output. `text-to-image`, `image-to-video` and `text-to-speech` still work, rewritten internally to the generated assets below. Replace with:
 
 | If you'd use… | Use instead |
 |---|---|
@@ -245,10 +242,19 @@ For background music, **use an `audio` asset on its own track** with `length: "e
 | `html` | `html5` (for motion graphics or animated overlays) or `rich-text` (for static styled text) |
 | `shape` | `svg` with `<rect>`, `<circle>`, `<polygon>` etc. |
 | `timeline.soundtrack` | `audio` asset on its own track with `length: "end"` |
+| `text-to-image`, `image-to-video`, `text-to-speech` | `image`, `video` or `audio` with `prompt` and `model` (below) |
 
 ### AI-generated assets
 
-`image-to-video`, `text-to-speech`, and `text-to-image` are billed per generation **even when invoked through the sandbox stage endpoint** (which is otherwise free). They are async — the render submits the AI job and waits. Renders containing AI assets take longer.
+Set `prompt` and `model` on an `image`, `video` or `audio` asset and it is generated at render time. `options` configures the model, and a `src` you set is only a preview placeholder that the generated file replaces. For speech, the prompt is the words to speak.
+
+```json
+{ "asset": { "type": "video", "prompt": "Slow dolly across a rain-soaked neon street at night", "model": "seedance-2.0-text-to-video", "options": { "resolution": "720p" } }, "start": 0, "length": 5 }
+```
+
+The models endpoint (`GET /models`) lists each model, whether the account can use it, its price, and the JSON Schema for its `options`. Options outside that schema are rejected. To animate a still, use a model that accepts a starting image and put the image URL in `options.inputSrc`.
+
+Generation is billed per asset **even on the stage endpoint**, which is otherwise free. Renders containing AI assets take longer, because the render waits for each generation.
 
 ## The design ladder — escalate from rich-text to html5
 

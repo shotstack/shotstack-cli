@@ -183,7 +183,7 @@ Rich-caption transcribes audio to produce word-level timing. Three ways to sourc
 
 | `src` value | Behaviour |
 |---|---|
-| `alias://<name>` | Auto-transcribe a referenced audio/video/text-to-speech clip. Set `alias: "<name>"` on the source clip. **Preferred for sync.** |
+| `alias://<name>` | Auto-transcribe a referenced audio or video clip, including generated speech. Set `alias: "<name>"` on the source clip. **Preferred for sync.** |
 | Subtitle file URL | Use existing `.srt` or `.vtt` file. No auto-transcription. |
 | Audio/video file URL | Auto-transcribe a standalone media file. Use when there's no source clip on the timeline. |
 
