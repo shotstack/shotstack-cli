@@ -141,6 +141,17 @@ shotstack template update <id> my-template.json --name "Promo v2"
 shotstack template delete <id>
 ```
 
+### `shotstack models [id]`
+
+Lists the generation models for prompt-driven image, video and audio assets, with each one's price in credits and whether your API key can use it. A model your plan doesn't include shows why. Pass a model id to see the options it accepts.
+
+```sh
+shotstack models
+# → nano-banana-2  image  unavailable: AiCapabilityNotIncluded  credits per generation by resolution: 0.5K 0.375, 1K 0.5 (default), …
+shotstack models seedance-2.0-text-to-video    # price and the JSON Schema for its options
+shotstack models --output json
+```
+
 ### `shotstack login` / `shotstack logout`
 
 Saves (or removes) your API key so it persists across shell sessions. Keys are stored per environment in `~/.shotstack/credentials.json`.
