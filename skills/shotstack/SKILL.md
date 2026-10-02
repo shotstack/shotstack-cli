@@ -13,6 +13,15 @@ license: Apache-2.0
 
 This skill loads in **terminal-based AI agents** (Claude Code, Cursor, Codex CLI, Gemini CLI, etc.). All operations here are shell commands. There is no embedded UI, no iframe, no inline canvas, no MCP tool surface — only `shotstack` invocations from a terminal. To hand off to a human, run `shotstack studio <file>`; this opens the user's default browser to a `shotstack.studio` URL. Tell the user to click Render *in the browser tab*, not in any UI inside the terminal.
 
+## Check versions once per session
+
+This skill is version **0.8.4** and needs `@shotstack/cli` **0.9.0** or later. Before the first `shotstack` command in a session:
+
+1. Run `shotstack --version`. If it is older than 0.9.0, tell the user: commands this skill documents, such as `models` and `generate`, are missing until they run `npm install -g @shotstack/cli@latest`.
+2. Run `npm view @shotstack/cli version`. If it is newer than this skill's version, tell the user an update is available and ask whether to install it. Only on a yes, run `npx skills update shotstack -y` and `npm install -g @shotstack/cli@latest`. Never update without asking. `npx skills check` is not a read-only check: it installs the update.
+
+If a check fails (no network, no npm, a sandbox), skip it and carry on.
+
 **Open-ended first render? Ask before composing.** If the ask doesn't state what the video is (subject, format or destination) — e.g. "render my first video", "make me a video", "set up Shotstack" — read [`references/onboarding.md`](references/onboarding.md) and ask its discovery questions, then WAIT for answers. Do not write an Edit first. An open-ended ask is not a specification, and a stray JSON file in the project doesn't make the user experienced. Compose without asking only when the user has stated what the video is, or explicitly says to just show anything.
 
 Commands for the Shotstack video rendering API. `render` submits an Edit JSON and returns a render ID; `status` polls a render until done. `ingest` uploads your own local files (or fetches remote URLs) and hosts them so they can be referenced from an Edit. `validate` lints an Edit — run it before every render. `studio` opens an edit in the browser editor for a human to preview, tweak, and render. `template list|get|create|update|delete` reads and writes templates saved to the account: `list` shows saved templates (id + name); `get <id>` fetches a saved template's Edit JSON (e.g. one the user designed in Studio) so you can render or remix it; `create <file> --name <name>` saves an edit as a new template; `update <id> <file>` overwrites one; `delete <id>` removes one. `models` lists the generation models for prompt-driven assets with each one's price and whether this key can use it; `models <id>` prints the options a model accepts. `generate <model> "<prompt>"` generates one asset on its own and prints its URL.
