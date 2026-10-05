@@ -6,8 +6,13 @@ import { resolveEnv, ENV_NAMES } from "../http/env.ts";
 import { emit, parseOutputFormat } from "../output.ts";
 import { withRecording, commandArgv } from "../recorder.ts";
 
-export type GenerationModel = components["schemas"]["GenerationModel"];
-type GenerationModelPricing = components["schemas"]["GenerationModelPricing"];
+// The published schema has no `pricing`; API deployments that predate generation quotes still send it.
+type GenerationModelPricing = {
+  credits: number | Record<string, number>;
+  tieredBy?: { option: string; default: string };
+  quantity?: { measure: string; per: number };
+};
+export type GenerationModel = components["schemas"]["GenerationModel"] & { pricing?: GenerationModelPricing };
 type GenerationModelList = components["schemas"]["GenerationModelListResponse"];
 
 const UNIT_NOUNS: Record<string, string> = { clipSeconds: "second", promptCharacters: "character" };
