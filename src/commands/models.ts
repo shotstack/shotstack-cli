@@ -6,16 +6,8 @@ import { resolveEnv, ENV_NAMES } from "../http/env.ts";
 import { emit, parseOutputFormat } from "../output.ts";
 import { withRecording, commandArgv } from "../recorder.ts";
 
-// The published schema has no `pricing`; API deployments that predate generation quotes still send it.
-type GenerationModelPricing = {
-  credits: number | Record<string, number>;
-  tieredBy?: { option: string; default: string };
-  quantity?: { measure: string; per: number };
-};
-export type GenerationModel = components["schemas"]["GenerationModel"] & { pricing?: GenerationModelPricing };
+export type GenerationModel = components["schemas"]["GenerationModel"];
 type GenerationModelList = components["schemas"]["GenerationModelListResponse"];
-
-const UNIT_NOUNS: Record<string, string> = { clipSeconds: "second", promptCharacters: "character" };
 
 export async function listModels(client: Client): Promise<GenerationModel[]> {
   const result = await client.get<GenerationModelList>("/models");
@@ -28,7 +20,7 @@ export async function fetchModel(client: Client, id: string): Promise<Generation
 }
 
 export const modelsCommand = new Command("models")
-  .description("List generation models with availability and price, or show one model's options")
+  .description("List generation models with availability, or show one model's options")
   .argument("[id]", "Model id; prints the JSON Schema for its options")
   .option(`--env <name>`, `Environment: ${ENV_NAMES.join(" | ")}`)
   .option("--output <format>", "Output format: text | json", "text")
@@ -58,24 +50,8 @@ export function formatAvailability(model: GenerationModel): string {
   return "availability unknown";
 }
 
-export function formatPrice(pricing: GenerationModelPricing): string {
-  const unit = formatUnit(pricing.quantity);
-  if (typeof pricing.credits === "number") return `${pricing.credits} ${pricing.credits === 1 ? "credit" : "credits"} ${unit}`;
-  const fallback = pricing.tieredBy?.default;
-  const tiers = Object.entries(pricing.credits)
-    .map(([tier, credits]) => `${tier} ${credits}${tier === fallback ? " (default)" : ""}`)
-    .join(", ");
-  return `credits ${unit} by ${pricing.tieredBy?.option ?? "option"}: ${tiers}`;
-}
-
-function formatUnit(quantity: GenerationModelPricing["quantity"]): string {
-  if (!quantity) return "per generation";
-  const noun = UNIT_NOUNS[quantity.measure] ?? quantity.measure;
-  return quantity.per === 1 ? `per ${noun}` : `per ${quantity.per} ${noun}s`;
-}
-
 function formatModelTable(models: GenerationModel[]): string {
-  const rows = models.map((m) => [m.model, m.type, formatAvailability(m), m.pricing ? formatPrice(m.pricing) : ""]);
+  const rows = models.map((m) => [m.model, m.type, formatAvailability(m)]);
   const widths = rows[0]!.map((_, col) => Math.max(...rows.map((row) => row[col]!.length)));
   return rows.map((row) => row.map((cell, col) => cell.padEnd(widths[col]!)).join("  ").trimEnd()).join("\n");
 }
@@ -83,7 +59,6 @@ function formatModelTable(models: GenerationModel[]): string {
 function formatModelDetail(model: GenerationModel): string {
   const lines = [`${model.model}  ${model.type}  ${formatAvailability(model)}`];
   if (model.name) lines.push(model.description ? `${model.name}: ${model.description}` : model.name);
-  if (model.pricing) lines.push(`Price: ${formatPrice(model.pricing)}`);
   if (model.options) lines.push("Options:", JSON.stringify(model.options, null, 2));
   return lines.join("\n");
 }

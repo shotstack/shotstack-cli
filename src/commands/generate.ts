@@ -8,6 +8,7 @@ import { withRecording, commandArgv, type CommandResult } from "../recorder.ts";
 import { fetchModel, formatAvailability, type GenerationModel } from "./models.ts";
 
 export type Generation = components["schemas"]["GenerationResponse"];
+export type GenerationQuote = components["schemas"]["GenerationQuote"];
 
 export interface GenerateInput {
   model: string;
@@ -26,13 +27,21 @@ export const generateCommand = new Command("generate")
   .option("--options <json>", "Model options as a JSON object (see `shotstack models <model>`)", parseOptionsJson)
   .option("--length <seconds>", "Length of the clip the asset fills; models that generate to a duration use it", parseSeconds)
   .option("--watch", "Poll until the asset is ready, then print its URL")
+  .option("--quote", "Print the credits this exact request would cost, without generating or charging")
   .option(`--env <name>`, `Environment: ${ENV_NAMES.join(" | ")}`)
   .option("--output <format>", "Output format: text | json", "text")
   .action(
     async (
       model: string,
       prompt: string,
-      options: { options?: Record<string, unknown>; length?: number; watch?: boolean; env?: string; output: string },
+      options: {
+        options?: Record<string, unknown>;
+        length?: number;
+        watch?: boolean;
+        quote?: boolean;
+        env?: string;
+        output: string;
+      },
     ) => {
       await withRecording("generate", commandArgv("generate"), async () => {
         const format = parseOutputFormat(options.output);
@@ -40,6 +49,7 @@ export const generateCommand = new Command("generate")
         const apiKey = requireApiKey(env.name);
         const client = createClient({ apiKey, env });
         const input = { model, prompt, options: options.options, length: options.length };
+        if (options.quote) return runQuote(client, input, format);
         return runGenerate(client, input, format, options.watch === true);
       });
     },
@@ -73,6 +83,19 @@ export async function runGenerate(
     }
   }
   return { renderId: final.id, response: final, exitCode: final.status === "failed" ? 1 : 0 };
+}
+
+// The API refuses a quote for a model the key can't use, so there's no availability check here.
+export async function runQuote(client: Client, input: GenerateInput, format: OutputFormat): Promise<CommandResult> {
+  const model = await fetchModel(client, input.model);
+  const quote = await client.post<GenerationQuote>("/generate/quote", buildRequest(model, input));
+  emit(format, quote, formatQuote(quote));
+  return { response: quote };
+}
+
+// `ceiling` means the duration isn't known yet, so the charge can come in lower.
+export function formatQuote(q: GenerationQuote): string {
+  return `${q.ceiling ? "up to " : ""}${q.credits} ${q.credits === 1 ? "credit" : "credits"}`;
 }
 
 export function buildRequest(model: GenerationModel, input: GenerateInput) {
