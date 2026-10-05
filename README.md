@@ -143,18 +143,18 @@ shotstack template delete <id>
 
 ### `shotstack models [id]`
 
-Lists the generation models for prompt-driven image, video and audio assets, with each one's price in credits and whether your API key can use it. A model your plan doesn't include shows why. Pass a model id to see the options it accepts.
+Lists the generation models for prompt-driven image, video and audio assets, with whether your API key can use each one. A model your plan doesn't include shows why. Pass a model id to see the options it accepts.
 
 ```sh
 shotstack models
-# → nano-banana-2  image  unavailable: AiCapabilityNotIncluded  credits per generation by resolution: 0.5K 0.375, 1K 0.5 (default), …
-shotstack models seedance-2.0-text-to-video    # price and the JSON Schema for its options
+# → nano-banana-2  image  unavailable: AiCapabilityNotIncluded
+shotstack models seedance-2.0-text-to-video    # the JSON Schema for its options
 shotstack models --output json
 ```
 
 ### `shotstack generate <model> <prompt>`
 
-Generates one image, video or audio asset from a prompt and prints its URL, without rendering an edit. `--options` takes the model's options as a JSON object (see `shotstack models <model>`). `--length` sets the clip length in seconds for models that generate to a duration. Generation is billed in credits on stage as well as v1. Identical requests share one job and its cached result, so repeating a request returns the same job instead of generating and charging again.
+Generates one image, video or audio asset from a prompt and prints its URL, without rendering an edit. `--options` takes the model's options as a JSON object (see `shotstack models <model>`). `--length` sets the clip length in seconds for models that generate to a duration. Generation is billed in credits on stage as well as v1; `--quote` prints what that exact request would cost, without generating or charging. Identical requests share one job and its cached result, so repeating a request returns the same job instead of generating and charging again.
 
 ```sh
 shotstack generate nano-banana-2 "A ceramic mug on a walnut desk, soft window light" --watch

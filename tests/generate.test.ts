@@ -1,6 +1,14 @@
 import { describe, test, expect, mock } from "bun:test";
 import { InvalidArgumentError } from "commander";
-import { buildRequest, parseOptionsJson, parseSeconds, runGenerate, type Generation } from "../src/commands/generate.ts";
+import {
+  buildRequest,
+  formatQuote,
+  parseOptionsJson,
+  parseSeconds,
+  runGenerate,
+  runQuote,
+  type Generation,
+} from "../src/commands/generate.ts";
 import type { GenerationModel } from "../src/commands/models.ts";
 import type { Client } from "../src/http/client.ts";
 
@@ -66,5 +74,23 @@ describe("runGenerate", () => {
     const result = await runGenerate(client, { model: video.model, prompt: "waves" }, "json", true, 0);
     expect(result.response).toEqual({ id: "g", status: "failed", error: "refused" });
     expect(result.exitCode).toBe(1);
+  });
+});
+
+describe("runQuote", () => {
+  test("quotes the exact request generate would send, without generating", async () => {
+    const post = mock(async () => ({ credits: 0.6038, ceiling: false }));
+    const get = mock(async () => video);
+    const client = { get, post } as unknown as Client;
+    const input = { model: video.model, prompt: "waves", length: 5 };
+    const result = await runQuote(client, input, "json");
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledWith("/generate/quote", buildRequest(video, input));
+    expect(result.response).toEqual({ credits: 0.6038, ceiling: false });
+  });
+
+  test("says 'up to' when the quote is a ceiling", () => {
+    expect(formatQuote({ credits: 2.5, ceiling: true })).toBe("up to 2.5 credits");
+    expect(formatQuote({ credits: 1, ceiling: false })).toBe("1 credit");
   });
 });
