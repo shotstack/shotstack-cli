@@ -2,6 +2,8 @@
 
 The `html5` asset type renders a self-contained HTML/CSS/JS page inside a video clip. Use it for animated overlays, data visualisations, motion graphics, and anything you'd build as a tiny single-page web app.
 
+For what you can make with it, effect by effect, see [`html5-effects.md`](html5-effects.md).
+
 This is the **modern replacement for the deprecated `html` asset.** `html5` runs in a real browser iframe with a JS runtime, library preloads, and deterministic frame capture — the old `html` asset should never be used.
 
 ## Contents
@@ -11,6 +13,7 @@ This is the **modern replacement for the deprecated `html` asset.** `html5` runs
 - The browser harness (deterministic auto-seek)
 - Sandbox restrictions: no network, inline everything (incl. fonts)
 - Sizing
+- 3D: what renders in preview and render
 - Worked example: animated lower-third (GSAP)
 - Worked example: animated bar chart (D3 + GSAP)
 - Worked example: 10-second countdown (pure CSS)
@@ -45,20 +48,44 @@ Clip-level `width` and `height` set the iframe's pixel dimensions. They default 
 
 ## Preloaded libraries
 
-Four libraries are always available — no `<script src=>` tags needed:
+Four libraries and GSAP's plugins are always available — no `<script src=>` tags and no `gsap.registerPlugin()` call needed:
 
 - **GSAP** (`window.gsap`) — primary animation library. Use timelines (`gsap.timeline()`) over loose tweens; the harness seeks timelines correctly.
 - **anime.js** (`window.anime`) — alternative animation library.
-- **D3** (`window.d3`) — for data binding, scales, and SVG/DOM construction. Pair with GSAP for the actual animation; D3's transitions work too but GSAP is more reliable under seek.
-- **Lottie** (`window.lottie`) — Bodymovin JSON player (SVG-renderer build; `renderer: "canvas"` is unavailable).
+- **D3** (`window.d3`) — for data binding, scales, and SVG/DOM construction. Pair with GSAP for the actual animation; D3's transitions work too but GSAP is more reliable under seek. `d3.randomLcg(seed)` is the seeded random source.
+- **Lottie** (`window.lottie`) — Bodymovin JSON player (SVG-renderer build; `renderer: "canvas"` is unavailable). Expressions in the file (`wiggle`, `loopOut`) don't run: a layer that carries one doesn't render. Bake expressions into keyframes before export (After Effects: *Animation → Keyframe Assistant → Convert Expression to Keyframes*).
 
-These cover ~95% of motion-graphics use cases. **You can't load other libraries via `<script src=>`** — the iframe's CSP blocks all external scripts and network access (see *Sandbox restrictions* below).
+GSAP 3.15 plugins, already registered:
+
+| Plugin | Use it for |
+|---|---|
+| `SplitText` | Per-character, word or line animation. `SplitText.create("#title", { type: "chars" })` |
+| `TextPlugin` | Typewriter text: `gsap.to(el, { text: "Hello", duration: 1 })` |
+| `ScrambleTextPlugin` | Decoding text. Picks random glyphs, so only its final text matches between preview and render |
+| `DrawSVGPlugin` | Stroke write-ons and travelling stroke segments: `{ drawSVG: "0%" } → { drawSVG: "100%" }` |
+| `MorphSVGPlugin` | Morph one SVG path into another |
+| `MotionPathPlugin` | Move along an SVG path, with `autoRotate` |
+| `Flip` | Animate between two layouts: `Flip.getState`, change the layout, `Flip.from(state)` |
+| `CustomEase`, `CustomBounce`, `CustomWiggle`, `EasePack` | Graph-editor curves, bounce, wiggle and slow-mo eases. Avoid `CustomWiggle` `type: "random"` and `RoughEase`: they're random |
+| `Physics2DPlugin`, `PhysicsPropsPlugin`, `InertiaPlugin` | Velocity, gravity and friction motion |
+
+ScrollTrigger, ScrollSmoother, Observer and Draggable aren't bundled: capture never scrolls or takes input.
+
+**You can't load other libraries via `<script src=>`** — the iframe's CSP blocks all external scripts and network access (see *Sandbox restrictions* below).
 
 ## The browser harness (deterministic auto-seek)
 
 Frames are captured by **seeking** the animation to each timestamp, not by playing in real time — so your animation must be **seekable**. GSAP (timelines or tweens), anime.js, Lottie, and CSS (`@keyframes`, transitions, `Element.animate()`) are all driven automatically. Anything time-driven that isn't seekable gives a frozen or wrong frame: never use `setTimeout`, `setInterval`, `requestAnimationFrame` loops, `Date.now()` / `performance.now()`, or `gsap.call()`. For "different content at different times" (countdowns, tickers, scene swaps) use the staggered-CSS pattern (see the countdown example) or bake values into the HTML and animate their visibility (see the value-reveal snippet).
 
-**`onUpdate` callbacks do not fire under seek.** The harness seeks the GSAP timeline to each frame's timestamp without playing through, so `onUpdate` handlers are not invoked. Any DOM mutation made inside an `onUpdate` callback (`textContent`, `innerHTML`, class swaps, attribute changes) will not appear in the rendered video — the element stays at its initial state. **Animate CSS properties only** (opacity, transform, filter, scale) — those are applied directly by GSAP's seek. To display a value, bake it into the HTML at generation time and reveal it with an opacity/transform tween.
+**Callbacks.** `onUpdate` runs on every seek for tweens and timelines the harness drives, so it can set what GSAP can't tween directly (a blur computed from depth, a counter's text), provided it depends only on the tween's own progress. It does **not** run for timelines created with `paused: true`, and `gsap.call()` fires when the playhead passes it but isn't undone when the renderer seeks back. Avoid both. Prefer animating CSS properties (opacity, transform, filter) and baking values into the HTML.
+
+**Scenes as nested timelines.** Build each scene as its own timeline and place it on one master: `gsap.timeline().add(sceneA, 0).add(sceneB, 2.5)`. Nested timelines and `delay` play at their offsets, the way nested compositions sit on an editing timeline.
+
+**Randomness must be seeded.** Preview and render must draw the same values, so never use `Math.random()`. Use `const rand = d3.randomLcg(42)` and generate positions, colours and velocities from it at load.
+
+**Initial state in CSS or `from()`.** Put each element's starting state in its CSS or in a `from()` / `fromTo()`. A `gsap.set()` made before the timeline can miss the first frame of the cloud render.
+
+**Custom drawing.** For anything the libraries don't drive (canvas 2D, SVG built in code), define `window.__shotstackSeek = function (ms) { … }` and redraw the whole frame for `ms` from scratch. The harness calls it on every frame, after GSAP.
 
 **Duration comes from the clip's `length`** — there's no animation-duration auto-detection. Size your animation to run within (or fill) the clip's `length`.
 
@@ -80,7 +107,7 @@ The iframe renders under a strict Content-Security-Policy (`default-src 'none'`)
    @font-face { font-family: 'Brand'; src: url('data:font/woff2;base64,<…>') format('woff2'); }
    .title { font-family: 'Brand', sans-serif; }
    ```
-2. **Use a system family** (`system-ui`, `Arial`, `Georgia`, …) — resolves in the render browser with no load.
+2. **Use a system family** (`system-ui`, `Arial`, `Georgia`, …) — resolves with no load, but each machine picks its own font, so text in Studio's preview won't match the cloud render exactly. Embed a font whenever the text must match.
 
 An unresolved family silently falls back to the browser default — the render won't fail, but the text won't be your font. For a single styled line, a `rich-text` asset (which *does* use `timeline.fonts[]`; verified catalogue in `shared/agent-core.md`) is simpler than a `data:` font embed.
 
@@ -117,6 +144,19 @@ The clip's `width` / `height` are the iframe's natural pixel dimensions — matc
 - Use **fixed pixel values throughout** (`px`, not `vw` / `vh` / `%` on root). The capture happens at the iframe's natural size, not a viewport.
 - The harness already applies a reset — `margin:0; padding:0; box-sizing:border-box; overflow:hidden`, and `body { background: transparent }` — so you mainly need to pin the explicit `width`/`height` on `html, body`. The body is transparent by default; it composites over the track below.
 - The iframe doesn't know about the clip — every internal coordinate is in iframe-pixel space.
+
+## 3D: what renders in preview and render
+
+| Look | How | Preview and render |
+|---|---|---|
+| 2.5D camera move (layers at depth, dolly, rack focus) | `perspective` on a stage, `transform-style: preserve-3d` on a world, each layer at `translateZ(…)`. GSAP moves the world (`z`, `y`, `rotationY`) as the camera. Depth of field: `onUpdate` sets each layer's `blur()` from its distance to a tweened focus value | Match |
+| Card flip, tilted plane | `perspective` + `rotationY` / `rotationX` | Match |
+| Cubes, carousels, planes that cross | `preserve-3d` with several faces | Correct in the cloud render; Studio's preview paints faces in DOM order, so hidden faces show. Avoid |
+| WebGL (three.js `WebGLRenderer`, shaders) | `<canvas>` with a WebGL context | Blank in the cloud render: no WebGL there |
+
+For 2.5D, order layers back to front in the DOM and scale each far layer up so it still fills the frame (`scale = (perspective − z) / perspective`).
+
+**Watch the cost.** Blur and `backdrop-filter` on full-frame layers are the expensive part on the CPU renderer: six blurred depth layers cost about 340 ms per 1080p frame. Keep blurred layers small, or blur only the layers that need it.
 
 ## Worked example: animated lower-third (GSAP)
 
@@ -227,16 +267,14 @@ The same pattern scales to scene transitions (each scene is a `<section>` with i
 
 ## Common mistakes
 
-1. **`<canvas>` elements.** The Studio frame capture serialises the iframe's DOM via `XMLSerializer`. A `<canvas>` element's bitmap lives in the 2D-context backing store, NOT in the DOM — so the cloned canvas comes through empty and **the captured frames show nothing where the canvas was**. The cloud render (puppeteer) handles canvas correctly, but Studio playback won't, so the parity is broken. Use SVG or positioned HTML elements instead:
+1. **`<canvas>` drawn in a loop.** Canvas 2D drawing renders in preview and render, but only when it's drawn from `window.__shotstackSeek(ms)`: a `requestAnimationFrame` loop never advances under seek. A WebGL canvas is blank in the cloud render. For charts and shapes, SVG is still lighter:
 
-   | Want | Replace `<canvas>` with |
+   | Want | Use |
    |---|---|
-   | Particles / generative graphics | Positioned `<div>` elements animated with CSS transforms, or `<circle>` in SVG |
+   | Particles / generative graphics | Canvas 2D from `__shotstackSeek` with seeded positions, or SVG `<circle>`s |
    | Charts (line / bar / area) | D3 → `<svg>` (see the bar-chart worked example) |
    | Pixel-level effects | CSS filters (`filter: blur(...) hue-rotate(...)`), `<feFilter>` in SVG |
    | Free-form drawings | SVG `<path>` |
-
-   If you're building something that genuinely cannot be expressed without canvas, render it as a `<video>` or `<image>` asset instead of an `html5` clip.
 2. **Mismatched dimensions.** If `clip.width = 1920` and your CSS sets `body { width: 1280px }`, content gets cropped or stretched. Pin the iframe's `html, body` dimensions to the clip dimensions.
 3. **JS syntax or runtime errors produce a blank clip with no render error.** If `asset.js` throws (syntax error or uncaught runtime error), the entire clip renders as a blank frame. The render still reports `status: "done"` with no error — there is no feedback loop. `shotstack validate` catches JS syntax errors offline; runtime errors (e.g. referencing a DOM element that doesn't exist) are silent. If a clip is blank, check the JS first: run `node --check` on the string, or wrap suspect code in `try/catch` to surface the error.
 

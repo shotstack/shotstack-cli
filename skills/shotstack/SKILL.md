@@ -148,7 +148,7 @@ If the share API is unreachable, the command falls back to the inline base64url 
 
 ## REQUIRED: Read `shared/agent-core.md` before composing any Edit JSON
 
-The Shotstack schema does **not** match CSS or web conventions. Composing Edit JSON from training-data instinct will produce silently invalid renders. **Read [`shared/agent-core.md`](shared/agent-core.md) first**, every time. The most-failed conversions:
+Edit JSON does **not** follow CSS or web conventions, least of all the `rich-text` asset's styling fields (an `html5` asset's `css` is ordinary CSS). Composing Edit JSON from training-data instinct will produce silently invalid renders. **Read [`shared/agent-core.md`](shared/agent-core.md) first**, every time. The most-failed conversions:
 
 | You'd write (wrong) | API requires (right) |
 |---|---|
@@ -194,7 +194,8 @@ This skill ships sub-references for the gnarly bits:
 - [`references/caption.md`](references/caption.md) — sizing per resolution, default style, the 5 named presets, alias pattern (asset type: `rich-caption`)
 - [`references/svg.md`](references/svg.md) — required attrs, supported elements
 - [`references/motion.md`](references/motion.md) — **the house motion language**: one duration scale, one ease, one stagger; choreography recipes (GSAP/CSS), the rich-text/transition mappings, and the brand kit. Read before composing any animation.
-- [`references/html5.md`](references/html5.md) — HTML5 asset: fields, preloaded libs (gsap/d3/anime/lottie), browser harness, sizing, worked examples
+- [`references/html5.md`](references/html5.md) — HTML5 asset: fields, preloaded libs (GSAP and its plugins, d3, anime, lottie), browser harness and seek rules, 3D, sizing, worked examples
+- [`references/html5-effects.md`](references/html5-effects.md) — **the creative palette**: every effect an `html5` clip can do, by common motion-design name (per-character text, stroke write-ons, mattes, blend modes, noise displacement, speed ramps, 2.5D camera, particles), with one-line recipes and what to avoid. Read before designing an `html5` clip.
 - [`references/html5-snippets.md`](references/html5-snippets.md) — copy-paste motion-graphic clips: kinetic headline, value reveal, shine sweep, pulsing CTA, film grain
 - [`references/fonts.md`](references/fonts.md) — built-in fonts, Google Fonts URL pattern, custom-font workflow
 - [`references/generation.md`](references/generation.md) — per-model prompting craft for AI-generated video, images, speech and music, and what a timeline adds to a prompt. Read before writing any `prompt`.
