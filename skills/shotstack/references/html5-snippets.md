@@ -202,7 +202,11 @@ Then in any snippet's CSS, swap the literal hex for the token: `color:{{ink}}`, 
 ## Composing these
 
 - Each snippet is one clip on its own track. Layer order is top-track-first (see `agent-core.md`) — grain and shine go in **early** tracks, backgrounds in **late** ones.
+<!-- surface:cli -->
 - They don't overlap on a single track, so `shotstack validate <file>` stays clean. Run it before rendering.
+<!-- /surface -->
 - Reuse text via top-level `merge[]` (`{{title}}` in the HTML) — see the lower-third example in `html5.md`.
 - Mix calm and punchy deliberately: a `blur-reveal` title, a `kinetic-headline` hero line, a `value-reveal` stat, a `shine` on the product, a pulsing CTA — all on the same tokens, so the set reads as one piece.
+<!-- surface:cli -->
 - Heavier motion = longer render. Preview in `shotstack studio <file>` before spending credits.
+<!-- /surface -->

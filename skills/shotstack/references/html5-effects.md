@@ -94,7 +94,7 @@ What you can build inside one `html5` clip, listed by the effect you'd reach for
 | Use | Recipe | Status |
 |---|---|---|
 | Particles, generative art | Canvas 2D drawn from `window.__shotstackSeek = (ms) => { … }` with seeded positions; or DOM dots with `physics2D` | Match |
-| Charts and data viz | D3 builds SVG, GSAP animates it ([`html5.md`](html5.md) bar-chart example) | Match |
+| Charts and data viz | D3 builds SVG, GSAP animates it (see the bar-chart example in [`html5.md`](html5.md)) | Match |
 | Lottie animation | `lottie.loadAnimation({ container, renderer: "svg", autoplay: false, loop: false, animationData })`. Shapes, stroke write-ons, masks, mattes and nested compositions work | Caveat: expressions don't run; convert them to keyframes first |
 
 ## Not available
