@@ -11,17 +11,17 @@ Don't invent property names or enum values. The Shotstack schema is published �
 - <https://shotstack.io/docs/guide/llms-full.txt> — single-file LLM-friendly version of the full guide + reference.
 - <https://github.com/shotstack/oas-api-definition/tree/main/schemas> — raw OpenAPI YAML, source of truth.
 
-CSS naming conventions (`alignment`, `vertical: "center"`) **do not** apply. The spec uses precise names that often differ from web/CSS instincts:
+The `rich-text` asset's styling fields look like CSS but aren't: CSS naming conventions (`alignment`, `vertical: "center"`) **do not** apply to them, or to clip properties. The spec uses precise names that often differ from web/CSS instincts. (An `html5` asset's `css` is ordinary CSS.)
 
-| You'd guess (wrong) | API uses (right) |
-|---|---|
-| `alignment` | `align` |
-| `align: "center"` (string on rich-text asset) | `align: { "horizontal": "center", "vertical": "middle" }` (object) |
-| `align.vertical: "center"` | `align.vertical: "middle"` |
-| `font.name` | `font.family` |
-| `duration` | `length` |
-| `transitions: [...]` (array) | `transition: { in, out }` (object) |
-| `fit: "cover"` (CSS instinct: scale+crop maintaining aspect) | `fit: "crop"` — Shotstack's `cover` STRETCHES without maintaining aspect ratio |
+| You'd guess (wrong) | API uses (right) | On |
+|---|---|---|
+| `alignment` | `align` | `rich-text` |
+| `align: "center"` (a string) | `align: { "horizontal": "center", "vertical": "middle" }` (object) | `rich-text` |
+| `align.vertical: "center"` | `align.vertical: "middle"` | `rich-text` |
+| `font.name` | `font.family` | `rich-text` |
+| `duration` | `length` | clip |
+| `transitions: [...]` (array) | `transition: { in, out }` (object) | clip |
+| `fit: "cover"` (CSS instinct: scale+crop maintaining aspect) | `fit: "crop"` — Shotstack's `cover` STRETCHES without maintaining aspect ratio | clip |
 
 When the API rejects a property, the error message names the field — fix and retry. Don't guess twice.
 
@@ -223,7 +223,7 @@ Use only the **current** asset types; the deprecated ones still parse but should
 | `audio` | Audio clip placed at a specific time on the timeline, or AI-generated speech or music from a `prompt`. |
 | `rich-text` | Styled text overlay with full typography control. **Use this instead of `text`/`html`/`title`.** |
 | `svg` | Vector graphics from raw SVG markup: `src` starts with `<svg`, never a URL or `data:` URI (the render fails). See `references/svg.md`. |
-| `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap/d3/anime/lottie. See `references/html5.md`. **Never use the deprecated `html` asset.** |
+| `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap with its plugins (SplitText, DrawSVG, MorphSVG, MotionPath, Flip and more), d3, anime and lottie. See `references/html5.md`. **Never use the deprecated `html` asset.** |
 | `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See `references/caption.md`. |
 | `luma` | Luma matte for masking effects. |
 
@@ -264,7 +264,7 @@ One overlay is a `rich-text` job. **Several videos "in different styles" is not*
 |---|---|---|
 | 1 — type & layout | `rich-text` | Titles, lower-thirds, kickers, captions, price/CTA pills. Fast and reliable; the right default for static styled text. |
 | 2 — shapes | `svg` | Colour panels, rules, badges, frames, geometric accents behind or around type. |
-| 3 — motion graphics | `html5` | Kinetic type, value reveals, shine sweeps, animated gradients, film grain, masked reveals, data-driven overlays — anything that should *move* beyond a `transition` or a Ken-Burns `effect`. gsap / anime / d3 / lottie are preloaded. See [`references/html5.md`](../references/html5.md) and the copy-paste clips in [`references/html5-snippets.md`](../references/html5-snippets.md). |
+| 3 — motion graphics | `html5` | Kinetic type, value reveals, shine sweeps, animated gradients, film grain, masked reveals, data-driven overlays — anything that should *move* beyond a `transition` or a Ken-Burns `effect`. gsap and its plugins, anime, d3 and lottie are preloaded. See [`references/html5.md`](../references/html5.md), the effects palette in [`references/html5-effects.md`](../references/html5-effects.md), and the copy-paste clips in [`references/html5-snippets.md`](../references/html5-snippets.md). |
 
 **When the brief asks for a *range*, deliberately spread across the ladder.** A strong set: a couple of clean `rich-text` studio cuts, one or two `svg` colour-block promos, and several `html5` pieces carrying the real motion (kinetic headline, value reveal, shine-swept CTA, grain-graded teaser). Reserve the elaborate `html5` treatments for the hero / hype cuts where motion sells the product. If every clip in a "variety" brief is `rich-text`, you have not delivered variety.
 

@@ -15,11 +15,11 @@ easings and durations. Read [`motion.md`](motion.md) for the why and the full re
 Read [`html5.md`](html5.md) for the rules these obey. The non-negotiables:
 
 - **Seekable animation only.** GSAP timelines, GSAP tweens, anime.js, Lottie, or CSS `@keyframes`. **Never** `setTimeout`/`setInterval`/`requestAnimationFrame`/`Date.now()`/`gsap.call()` — the renderer seeks by absolute time, it doesn't play.
-- **`onUpdate` does not fire under seek.** GSAP `onUpdate` callbacks are **not** invoked when the harness seeks to a frame, so any DOM mutations made inside them (`textContent`, `innerHTML`, class swaps) won't appear in the rendered video. Animate **CSS properties only** (opacity, transform, filter, scale). Bake final values into the HTML at generation time and reveal them with opacity/transform tweens.
+- **Animate CSS properties; keep callbacks pure.** `onUpdate` runs on every seek, so it may only set values derived from the tween's progress. Never use `paused: true` timelines or `gsap.call()`: neither follows the renderer's seeks. Bake final values into the HTML at generation time and reveal them with opacity/transform tweens.
 - **Size the clip to the content, not the canvas.** `html, body` pinned to the clip's `width`/`height`; place with `offset` (`{x:0,y:0}` is centred, `y` positive is up). Use **px**, never `vw`/`vh`/`%`.
 - **The body is transparent by default** — the clip composites over the layers below (only set an opaque background if you want one).
-- **No `<canvas>`** — Studio capture serialises the DOM; canvas bitmaps come through empty. Use SVG or positioned DOM.
-- **No network.** gsap/anime/d3/lottie are preloaded; external `<script src>`, `fetch`, remote `<img>`, and remote fonts are all CSP-blocked — inline everything as `data:` URIs.
+- **Canvas only from the seek hook.** Draw canvas 2D inside `window.__shotstackSeek(ms)`, never in a `requestAnimationFrame` loop. WebGL is blank in the cloud render. SVG or positioned DOM is usually lighter.
+- **No network.** gsap (with its plugins), anime, d3 and lottie are preloaded; external `<script src>`, `fetch`, remote `<img>`, and remote fonts are all CSP-blocked — inline everything as `data:` URIs.
 - **Fonts:** `timeline.fonts[]` does **not** reach `html5` and remote `@font-face` is blocked. These snippets name a display font first but render in the `system-ui` fallback unless you inline the font as a `data:` `@font-face`.
 - **Use unique element IDs for GSAP targets, not `:nth-child` or compound CSS selectors.** Studio preview doesn't resolve `.parent:nth-child(n) .child` patterns; `#id` works everywhere. When animating repeated elements (list rows, bars, cards), generate a unique ID per item (`id="row0"`, `id="bar0"`) rather than relying on structural selectors.
 
