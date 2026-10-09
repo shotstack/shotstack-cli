@@ -276,7 +276,10 @@ The same pattern scales to scene transitions (each scene is a `<section>` with i
    | Pixel-level effects | CSS filters (`filter: blur(...) hue-rotate(...)`), `<feFilter>` in SVG |
    | Free-form drawings | SVG `<path>` |
 2. **Mismatched dimensions.** If `clip.width = 1920` and your CSS sets `body { width: 1280px }`, content gets cropped or stretched. Pin the iframe's `html, body` dimensions to the clip dimensions.
-3. **JS syntax or runtime errors produce a blank clip with no render error.** If `asset.js` throws (syntax error or uncaught runtime error), the entire clip renders as a blank frame. The render still reports `status: "done"` with no error — there is no feedback loop. `shotstack validate` catches JS syntax errors offline; runtime errors (e.g. referencing a DOM element that doesn't exist) are silent. If a clip is blank, check the JS first: run `node --check` on the string, or wrap suspect code in `try/catch` to surface the error.
+3. **JS syntax or runtime errors produce a blank clip with no render error.** If `asset.js` throws (syntax error or uncaught runtime error), the entire clip renders as a blank frame. The render still reports `status: "done"` with no error — there is no feedback loop. Runtime errors (e.g. referencing a DOM element that doesn't exist) are silent: wrap suspect code in `try/catch` to surface the error.
+   <!-- surface:cli -->
+   `shotstack validate` catches JS syntax errors offline. If a clip is blank, check the JS first: run `node --check` on the string.
+   <!-- /surface -->
 
 ## When to use `html5` vs `rich-text`/`svg`
 

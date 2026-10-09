@@ -24,7 +24,8 @@
     "build": "bun build src/index.ts --target=node --minify --outfile=dist/shotstack.js --banner='#!/usr/bin/env node' && chmod +x dist/shotstack.js",
     "prepack": "bun run build",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "render:guides": "bun scripts/render-guides.ts"
   },
   "dependencies": {
     "@shotstack/schemas": "^1.22.0",
