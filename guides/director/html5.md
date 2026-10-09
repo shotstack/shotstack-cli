@@ -408,13 +408,13 @@ Copy-paste `html5` clips that "pop" — kinetic type, value reveals, shine sweep
 pulsing CTAs, grain. Each is a **single clip**: paste it into a track's
 `clips[]`, set `start`/`length`, and position with `offset`.
 
-Every snippet here is composed from the house **the motion guide** tokens —
-one duration scale (`base` 0.6 s in, `fast` 0.33 s out), one house ease
+Every snippet here starts from the default **the motion guide** timings —
+one duration scale (`base` 0.6 s in, `fast` 0.33 s out), one ease
 (`power3.out` / `cubic-bezier(0.16,1,0.3,1)`), one stagger (`0.13 s`), and a single
 shared palette (ink `#141414`, accent `#D96B82`). That shared vocabulary is what
-makes a set of these clips feel like one production. **When you adapt a snippet,
-keep the tokens** — change the words, the colours and the canvas size, not the
-easings and durations. Read the motion guide for the why and the full recipe set.
+makes a set of these clips feel like one production. When you adapt a snippet,
+change anything the brief calls for, timing included, and keep whatever you
+choose consistent across the edit. Read the motion guide for the why and the full recipe set.
 
 Read the HTML5 guide above for the rules these obey. The non-negotiables:
 
@@ -429,15 +429,15 @@ Read the HTML5 guide above for the rules these obey. The non-negotiables:
 
 Coordinates below assume a **1080×1920 vertical** canvas; adjust `offset` for other sizes.
 
-> **Continuous-motion exception.** Looping or drifting effects (the pulse, the sweep, the grain) are *ambient*, not entrances — they correctly use `ease-in-out` / `linear` and their own loop durations rather than the entrance tokens. Everything that *reveals* uses the house entrance tokens.
+> **Continuous-motion exception.** Looping or drifting effects (the pulse, the sweep, the grain) are *ambient*, not entrances — they suit `ease-in-out` / `linear` and their own loop durations rather than the entrance timings. The snippets' reveals use the default entrance timings.
 
 ---
 
 ## 1. Blur reveal — calm text entrance
 
-**Category** entrances · **Use when** the default text reveal; the calm house entrance for a title or line — reach for a punchier one (snippet 2) only with intent · **Canvas** 900×300 · **Tags** text, reveal, entrance, blur
+**Category** entrances · **Use when** the default text reveal; the calm default entrance for a title or line — reach for a punchier one (snippet 2) only with intent · **Canvas** 900×300 · **Tags** text, reveal, entrance, blur
 
-The reference entrance: opacity, blur and a 16 px rise settle **together** off one tween (one progress, many channels) on the house ease — no overshoot. Quietly cinematic.
+The reference entrance: opacity, blur and a 16 px rise settle **together** off one tween (one progress, many channels) on the default ease — no overshoot. Quietly cinematic.
 
 ```json
 {
@@ -463,7 +463,7 @@ The reference entrance: opacity, blur and a 16 px rise settle **together** off o
 
 **Category** entrances · **Use when** a headline needs energy — a hype/hero title where each word punches up in sequence · **Canvas** 980×420 · **Tags** text, reveal, entrance, stagger, hero
 
-Each word springs up in sequence. GSAP timeline, fully seekable, on the house stagger.
+Each word springs up in sequence. GSAP timeline, fully seekable, on the default stagger.
 
 ```json
 {
@@ -481,7 +481,7 @@ Each word springs up in sequence. GSAP timeline, fully seekable, on the house st
 }
 ```
 
-Each word starts `translateY(120%)`, opacity 0; `0.6 s` rise on `power3.out`, words `0.13 s` apart (the house stagger); a trailing empty tween holds the title still. **Punchy variant:** this is the one "hero" spot where a pop is allowed — swap `ease:'power3.out'` for `ease:'back.out(1.4)'` for a gentle overshoot. Keep it to one headline per scene. `Anton` falls back to `system-ui` unless inlined.
+Each word starts `translateY(120%)`, opacity 0; `0.6 s` rise on `power3.out`, words `0.13 s` apart (the default stagger); a trailing empty tween holds the title still. **Punchy variant:** this is the one "hero" spot where a pop is allowed — swap `ease:'power3.out'` for `ease:'back.out(1.4)'` for a gentle overshoot. Keep it to one headline per scene. `Anton` falls back to `system-ui` unless inlined.
 
 ---
 

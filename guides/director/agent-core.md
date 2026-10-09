@@ -130,6 +130,15 @@ Compose from this rather than round-tripping the full schema — these are the v
 
 For motion beyond this (kinetic type, value reveals, shine sweeps, grain, pulsing CTAs) reach for `html5` — see the HTML5 snippets.
 
+## Motion
+
+Built-in motion and `html5` follow different rules. Full detail in the motion guide.
+
+- **Built-in motion has fixed options.** Clip `transition` and `effect` names, `rich-text` `animation` presets and clip keyframes accept only the schema's values: keyframe `interpolation` is `linear`, `bezier` or `constant`, and `easing` comes from a fixed list (`easeOutCubic`, `easeInOutBack`, …). Keyframes move the whole clip while a preset animates the text inside it, so animate each property one way per clip.
+- **rich-text `animation`** (entrance-only — exits use the clip `transition.out`): `preset:"ascend"` + `direction:"up"` is a rise-and-fade; for a word cascade use `preset:"shift"` + `style:"word"` + `direction:"up"` (`style` works only on `typewriter`/`shift`; `direction` is required for `slideIn`/`ascend`/`shift`/`movingLetters`).
+- **`html5` motion is unconstrained:** any timing, easing, physics or style the brief calls for.
+- **Brand once:** put palette/font in top-level `merge[]` (`{{ink}}`, `{{accent}}`, `{{font}}`) and reference them in every clip — one edit re-skins the whole video.
+
 ## Positioning & coordinates
 
 `position` picks one of nine anchor points (`center` default; `top` `bottom` `left` `right` `topLeft` `topRight` `bottomLeft` `bottomRight`); `offset` nudges from there. **`offset` is a fraction of the output frame, not a centred −1..+1 grid:** `offset.x` positive → right (× frame width), `offset.y` positive → **up** (× frame height). Range is ±10; anything past ±1 pushes the clip off-frame.

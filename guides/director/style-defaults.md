@@ -1,13 +1,10 @@
-## Motion language (house tokens)
+**Defaults when no style is given.** Use these when the user hasn't asked for a particular look; their brief, brand or references always come first.
 
-Compose motion from a **closed set of tokens** so a multi-clip edit feels like one production, not eight unrelated effects. **Don't invent a new easing or duration per clip.** Full recipes (GSAP/CSS, choreography, brand kit) in the motion guide.
+- **Durations (seconds):** `instant 0.2 · fast 0.33 · base 0.6 · slow 0.8 · slower 1.0 · hold 1.5`. Entrances around `base`, exits a little faster.
+- **Ease:** html5 GSAP `power3.out` (in) / `power2.in` (out); CSS `cubic-bezier(0.16, 1, 0.3, 1)`. `linear` suits continuous drift; `back.out(1.4)` reads as a pop.
+- **Stagger and travel:** `0.13s` between siblings; translate 12–24 px and scale from 0.92 for a restrained look.
+- **Consistency:** whatever the values, reuse a small set of timings across the edit so the clips feel like one piece.
 
-- **Durations (seconds):** `instant 0.2 · fast 0.33 · base 0.6 · slow 0.8 · slower 1.0 · hold 1.5`. Entrances default to **`base` (0.6)**; **exits are faster** (`fast`).
-- **One house ease, no overshoot:** html5 GSAP `power3.out` (in) / `power2.in` (out); CSS `cubic-bezier(0.16, 1, 0.3, 1)`. Never raw `linear` for tracked motion. A gentle `back.out(1.4)` is reserved for **one** hero element per scene — calm is the default.
-- **One stagger:** `0.13s` between siblings (GSAP `stagger: 0.13`; CSS `animation-delay` steps).
-- **Restraint:** translate 12–24 px (not 80), scale ≥ 0.92, one focal element per moment, let a reveal settle (`hold`) before it cuts.
-- **rich-text `animation`** (entrance-only — exits use the clip `transition.out`): set `duration` from the scale (e.g. `0.6`); `preset:"ascend"` + `direction:"up"` is the rise-and-fade workhorse; for a word cascade use `preset:"shift"` + `style:"word"` + `direction:"up"` (`style` works only on `typewriter`/`shift`; `direction` is required for `slideIn`/`ascend`/`shift`/`movingLetters`).
-- **Brand once:** put palette/font in top-level `merge[]` (`{{ink}}`, `{{accent}}`, `{{font}}`) and reference them in every clip — one edit re-skins the whole video. Accent used sparingly.
 ## The design ladder — escalate from rich-text to html5
 
 One overlay is a `rich-text` job. **Several videos "in different styles" is not** — making them all `rich-text` ships one look eight times. Match the asset to the ambition:

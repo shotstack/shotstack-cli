@@ -18,9 +18,11 @@ test("no rendered guide carries CLI-only text, markers or skill file links", () 
 	}
 });
 
-test("Director gets the style defaults only in their own layer; the MCP guide keeps them inline", () => {
-	const defaults = "## Motion language (house tokens)";
+test("Director gets the style defaults only in their own layer; built-in motion rules reach every surface", () => {
+	const defaults = "**Defaults when no style is given.**";
+	const builtIn = "**Built-in motion has fixed options.**";
 	expect(rendered.get("guides/director/agent-core.md")).not.toContain(defaults);
+	expect(rendered.get("guides/director/agent-core.md")).toContain(builtIn);
 	expect(rendered.get("guides/director/style-defaults.md")).toContain(defaults);
 	expect(rendered.get("guides/mcp/agent-core.md")).toContain(defaults);
 });

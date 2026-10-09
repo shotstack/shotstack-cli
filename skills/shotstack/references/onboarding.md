@@ -42,8 +42,8 @@ e-commerce app full of product images answers question 2).
   (`references/asset-library.md`) and motion-graphic snippets
   (`references/html5-snippets.md`), matched to their stated use case.
 - Use their brand where it exists: colours, fonts and logos from the project
-  or their site rather than an invented look. Follow the house motion
-  language (`references/motion.md`).
+  or their site rather than an invented look. For motion, follow their
+  direction; without one, start from the defaults in `references/motion.md`.
 - If they chose "many": add merge fields (`{{ placeholder }}`) for the parts
   that vary per video, and show one render with sample values.
 - Loop: compose, then `shotstack validate`, then `shotstack render edit.json

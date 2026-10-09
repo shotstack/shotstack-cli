@@ -162,7 +162,7 @@ Edit JSON does **not** follow CSS or web conventions, least of all the `rich-tex
 
 The full ruleset (asset types, fonts, smart-string clip values, top-5 mistakes) lives in `shared/agent-core.md`. The same file is also returned by the Shotstack MCP server's `get_shotstack_guide` tool, so the conventions are identical across surfaces.
 
-**For anything that animates, compose motion from the house tokens** — one duration scale (`base` 0.6 s in / `fast` 0.33 s out), one house ease (`power3.out` / `cubic-bezier(0.16,1,0.3,1)`, no overshoot by default), one stagger (`0.13 s`). The *Motion language* section of `agent-core.md` is the summary; [`references/motion.md`](references/motion.md) has the full GSAP/CSS recipes and the brand kit. **Don't invent a new easing or duration per clip** — shared tokens are what make a multi-clip edit feel like one production.
+**Built-in motion and `html5` follow different rules.** Clip transitions and effects, `rich-text` presets and clip keyframes are fixed options: use only the schema's names and fields, and take care combining them on existing assets. `html5` is unconstrained: any timing, easing or style the brief calls for. When nobody has given a direction, start from the defaults (`base` 0.6 s in / `fast` 0.33 s out, `power3.out`, `0.13 s` stagger) and keep timings consistent across the edit. The *Motion* section of `agent-core.md` is the summary; [`references/motion.md`](references/motion.md) has the detail, the recipes and the brand kit.
 
 ## Exit codes
 
@@ -193,7 +193,7 @@ This skill ships sub-references for the gnarly bits:
 - [`references/positioning.md`](references/positioning.md) — coordinate model, `position`/`offset` (fraction of frame, +y up), clip bounding box & `fit`, text sizing, transform order
 - [`references/caption.md`](references/caption.md) — sizing per resolution, default style, the 5 named presets, alias pattern (asset type: `rich-caption`)
 - [`references/svg.md`](references/svg.md) — required attrs, supported elements
-- [`references/motion.md`](references/motion.md) — **the house motion language**: one duration scale, one ease, one stagger; choreography recipes (GSAP/CSS), the rich-text/transition mappings, and the brand kit. Read before composing any animation.
+- [`references/motion.md`](references/motion.md) — **motion**: the fixed built-in options (transitions, effects, rich-text presets, keyframe easing) and how to combine them, plus default html5 timings, GSAP/CSS recipes and the brand kit. Read before composing any animation.
 - [`references/html5.md`](references/html5.md) — HTML5 asset: fields, preloaded libs (GSAP and its plugins, d3, anime, lottie), browser harness and seek rules, 3D, sizing, worked examples
 - [`references/html5-effects.md`](references/html5-effects.md) — **the creative palette**: every effect an `html5` clip can do, by common motion-design name (per-character text, stroke write-ons, mattes, blend modes, noise displacement, speed ramps, 2.5D camera, particles), with one-line recipes and what to avoid. Read before designing an `html5` clip.
 - [`references/html5-snippets.md`](references/html5-snippets.md) — copy-paste motion-graphic clips: kinetic headline, value reveal, shine sweep, pulsing CTA, film grain

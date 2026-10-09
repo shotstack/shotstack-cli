@@ -1,93 +1,104 @@
-# Motion language — the house vocabulary
+# Motion: built-in options and html5
 
-A small, closed set of timing, easing and stagger values that **every** animated clip should share. Composing motion from these tokens — instead of inventing a new easing and duration per clip — is what makes a multi-clip edit feel like one production instead of eight unrelated effects. Reach for these before hardcoding a `duration`, an `ease`, or a delay.
+Shotstack has two kinds of motion, and they follow different rules:
 
-> The values are video-paced for Shotstack's **second-based** timeline (most UI-motion guidance is frame-based). The GSAP/CSS easings below stand in for spring physics, which the render engine doesn't expose.
+- **Built-in motion** — clip `transition` and `effect`, `rich-text` `animation` presets, and clip keyframes. These are fixed options: use only the names and fields the schema defines, and take care when combining them on existing assets (see below).
+- **`html5`** — anything goes: any property, easing, timing, physics or look. The defaults further down are a starting point for when nobody has given a direction. The user's brief, their brand or a reference video always comes first.
 
-## The tokens
+Whatever the mix, motion reads best when an edit reuses a small set of timings across its clips, so the clips feel like one piece.
 
-### Duration scale (seconds)
+> Durations here are in seconds, matching Shotstack's second-based timeline (most UI-motion guidance is frame-based).
 
-| Token | Seconds | Use for |
+## Built-in motion: fixed options
+
+| Layer | Control | Options |
+|---|---|---|
+| clip `transition` / `effect` | whole-clip in/out | `fade`, `slide*`, `zoom` and the rest of the schema's list, each with `Slow`/`Fast` variants (`Slow` ≈ 0.8 s, default ≈ 0.6 s, `Fast` ≈ 0.33 s) |
+| `rich-text` `animation` | `preset` + `duration` + `style` + `direction` | presets below |
+| clip keyframes | Tween arrays on clip properties | `interpolation` and `easing` from fixed lists, below |
+
+### rich-text animation
+
+| Intent | `rich-text` animation |
+|---|---|
+| fade in | `{ "preset": "fadeIn", "duration": 0.6 }` |
+| rise + fade | `{ "preset": "ascend", "duration": 0.6, "direction": "up" }` |
+| slide in | `{ "preset": "slideIn", "duration": 0.6, "direction": "up" }` |
+| word-by-word cascade | `{ "preset": "shift", "duration": 0.6, "style": "word", "direction": "up" }` |
+| typewriter | `{ "preset": "typewriter", "duration": 0.8, "style": "character" }` |
+
+Schema constraints (`@shotstack/schemas` → `RichTextAnimation`): `preset` ∈ `fadeIn · slideIn · typewriter · ascend · shift · movingLetters`; `duration` 0.1–30 s; **`style` (`word`/`character`) applies only to `typewriter` and `shift`** (ignored on the others); `direction` is **required** for `slideIn`, `ascend`, `shift`, `movingLetters`. Rich-text `animation` is **entrance-only** — exits use the clip `transition.out`. The presets' easing is fixed by the engine; for full easing control, use `html5`.
+
+### Clip keyframes
+
+`scale`, `opacity`, `offset.x`/`.y`, `transform.rotate.angle`, `transform.skew.x`/`.y`, an asset's `volume` and a video's `speed` take a Tween array instead of a number: `[{ "from": 1, "to": 1.1, "start": 0, "length": 2, "interpolation": "bezier", "easing": "easeOutQuart" }]`.
+
+- `interpolation` is `linear` (default), `bezier` or `constant`. Pair `easing` with `bezier`.
+- `easing` is one of `ease`, `easeIn`, `easeOut`, `easeInOut`, or `easeIn` / `easeOut` / `easeInOut` followed by `Quad`, `Cubic`, `Quart`, `Quint`, `Sine`, `Expo`, `Circ` or `Back` (for example `easeOutCubic`, `easeInOutBack`).
+- Next to html5 GSAP, `easeOutQuad` ≈ `power1.out`, `easeOutCubic` ≈ `power2.out` and `easeOutQuart` ≈ `power3.out`.
+
+### Combining built-in motion on existing assets
+
+- Keyframes move the whole rendered clip; a `rich-text` preset animates the text inside it. A slide preset plus an `offset` keyframe moves the text twice, so animate each property one way per clip.
+- Keyframe times are relative to the clip's `start`, and a tween past the clip's `length` is cut off.
+- Footage, images and logos are scaled with `fit` first; keyframe `scale` multiplies that, so a large scale on a low-resolution source shows its pixels.
+
+## html5: free motion, with defaults to start from
+
+Nothing in this section is required. Use these values when the user hasn't given a direction, and change any of them when the brief, the brand or a reference calls for a different feel: fast, bouncy, linear or maximal are all valid when asked for.
+
+### Durations (seconds)
+
+| Name | Seconds | Typical use |
 |---|---|---|
 | `instant` | 0.2 | micro shifts, near-imperceptible feedback |
-| `fast` | 0.33 | **exits**, small moves |
-| `base` | 0.6 | **the default entrance** — ~80% of reveals |
+| `fast` | 0.33 | exits, small moves |
+| `base` | 0.6 | most entrances |
 | `slow` | 0.8 | large entrances, hero moves |
 | `slower` | 1.0 | full-scene transitions |
-| `hold` | 1.5 | minimum settled hold before a clip ends |
+| `hold` | 1.5 | a settled hold before a clip ends |
 
-Most entrances are `base` (0.6 s). Exits are deliberately faster than entrances — get out of the way faster than you came in.
+Exits a little faster than entrances tend to feel clean.
 
-### Easing — one house curve, no overshoot by default
+### Easing
 
 | Where | Entrance / settle | Exit |
 |---|---|---|
 | **html5 GSAP** | `ease: 'power3.out'` | `ease: 'power2.in'` |
 | **html5 CSS** | `cubic-bezier(0.16, 1, 0.3, 1)` | `cubic-bezier(0.3, 0, 0.8, 0.2)` |
 
-`power3.out` / `cubic-bezier(0.16,1,0.3,1)` is the **house ease** — a confident "fast then settle" that reads like a heavily-damped spring with **no bounce**. Use it for anything the eye tracks (position, scale, blur). Never use raw `linear` / `'none'` for motion the eye follows; `linear` is only correct for a continuous drift (grain, marquee, a constant-speed ticker).
+`power3.out` / `cubic-bezier(0.16,1,0.3,1)` is a confident "fast then settle" with no bounce. `linear` / `'none'` suits continuous drift (grain, a marquee, a constant-speed ticker); on motion the eye follows it looks mechanical, which is right when that's the look. Overshoot (`back.out(1.4)` in GSAP) reads as a pop: in a calm edit it lands best on one hero element per scene, and an energetic brief can use more.
 
-**Overshoot is opt-in, not default.** A gentle `back.out(1.4)` (GSAP) is reserved for **one** "hero" element per scene where a pop is intended — a logo sting, a headline punch. Calm is the default; energetic is fine when it *earns* it. Never sprinkle bounce across every element.
+### Stagger and travel
 
-### Stagger — one value
+- `0.13 s` (≈ 4 frames at 30 fps) between siblings is a comfortable cascade — words, list items, grouped reveals. In GSAP: `stagger: 0.13`. In CSS: `animation-delay` steps of `0.13s`.
+- Translating 12–24 px and scaling from `0.92` gives a restrained look; blur reveals often run `10 px → 0`. Go bigger when the brief is energetic.
+- A reveal that holds for a moment before the clip ends (a trailing `gsap.to({}, { duration: <hold> })` or enough clip `length`) reads better than one cut the instant it lands.
 
-`0.13 s` (≈ 4 frames at 30 fps) between siblings in any cascade — words, list items, grouped reveals. One value everywhere; present but never frantic. In GSAP: `stagger: 0.13`. In CSS: `animation-delay` steps of `0.13s` (`0s, 0.13s, 0.26s, …`).
+### Choreography recipes (GSAP)
 
-### Travel & restraint
-
-- **Travel small:** translate **12–24 px**, not 80. The eye should feel the motion, not be dragged by it. Blur reveals: `10 px → 0`. Scale reveals: `0.92 → 1` (below ~0.85 is dramatic-zoom territory — avoid unless intended).
-- **One focal element per moment.** If two things compete, stagger them. Don't animate everything at once.
-- **Let it settle.** After a reveal lands, hold it (a trailing `gsap.to({}, { duration: <hold> })` or enough clip `length`) before the clip ends. Never cut a reveal the instant it arrives.
-
-## The three motion layers
-
-Shotstack exposes motion at three levels of control. Use the tokens at whichever level fits; reach down a level only when you need more control.
-
-| Layer | Control | Where the tokens apply |
-|---|---|---|
-| 1 — **clip `transition` / `effect`** | coarse (whole-clip in/out; only `Slow`/`Fast` variants) | pick `fade`, `slide*`, `zoom`; `Slow` ≈ `slow`, default ≈ `base`, `Fast` ≈ `fast` |
-| 2 — **`rich-text` `animation`** | medium (`preset` + `duration` + `style` + `direction`) | set `duration` from the scale; `style:"word"` gives the staggered cascade |
-| 3 — **`html5` GSAP / CSS** | full (any property, any easing) | the full vocabulary below — durations, the house ease, `0.13` stagger |
-
-### Layer 2 — rich-text animation, tokenised
-
-`animation.preset` maps onto the choreography names; set `duration` from the scale:
-
-| Intent | `rich-text` animation |
-|---|---|
-| fade in | `{ "preset": "fadeIn", "duration": 0.6 }` |
-| rise + fade (the workhorse) | `{ "preset": "ascend", "duration": 0.6, "direction": "up" }` |
-| slide in | `{ "preset": "slideIn", "duration": 0.6, "direction": "up" }` |
-| word-by-word cascade | `{ "preset": "shift", "duration": 0.6, "style": "word", "direction": "up" }` |
-| typewriter | `{ "preset": "typewriter", "duration": 0.8, "style": "character" }` |
-
-Schema constraints (`@shotstack/schemas` → `RichTextAnimation`): `preset` ∈ `fadeIn · slideIn · typewriter · ascend · shift · movingLetters`; `duration` 0.1–30 s; **`style` (`word`/`character`) applies only to `typewriter` and `shift`** (ignored on the others); `direction` is **required** for `slideIn`, `ascend`, `shift`, `movingLetters`. Rich-text `animation` is **entrance-only** — exits use the clip `transition.out` (Layer 1). Easing on the presets is engine-fixed; for full easing control, drop to html5 (Layer 3).
-
-## Choreography recipes (html5 / GSAP)
-
-Pure, seekable GSAP — obey the HTML5 guide (no `setTimeout`/`rAF`/`Date.now`/`gsap.call()`; size the clip to the content). Each recipe is a named choreography helper you compose rather than reinventing.
+Pure, seekable GSAP — obey the HTML5 guide (no `setTimeout`/`rAF`/`Date.now`/`gsap.call()`; size the clip to the content). Each recipe uses the defaults above; swap in any values the brief calls for.
 
 ```js
-// entryFadeRise — THE workhorse: rise 12px + fade, house ease, base duration
+// entryFadeRise: rise 12px + fade
 gsap.from('.el', { opacity: 0, y: 12, duration: 0.6, ease: 'power3.out' });
 
-// entryFade — presence only (overlays, avatars)
+// entryFade: presence only (overlays, avatars)
 gsap.from('.el', { opacity: 0, duration: 0.6, ease: 'power3.out' });
 
-// entryScale — calm scale-up
+// entryScale: calm scale-up
 gsap.from('.el', { opacity: 0, scale: 0.92, duration: 0.6, ease: 'power3.out' });
 
-// blurReveal — opacity + blur + rise off ONE tween (one progress, many channels)
+// blurReveal: opacity + blur + rise off ONE tween (one progress, many channels)
 gsap.from('.el', { opacity: 0, y: 16, filter: 'blur(10px)', duration: 0.6, ease: 'power3.out' });
 
-// wordStagger — each word rises in sequence (wrap words in <span>)
+// wordStagger: each word rises in sequence (wrap words in <span>)
 gsap.from('.word', { opacity: 0, yPercent: 120, duration: 0.6, ease: 'power3.out', stagger: 0.13 });
 
-// heroReveal — the ONE place a pop is allowed (≤1 per scene)
+// heroReveal: a pop for a hero element
 gsap.from('.hero', { opacity: 0, y: 16, scale: 0.97, duration: 0.8, ease: 'back.out(1.4)' });
 
-// exitFadeFall — fade + drop, faster, ease-in (an exit doesn't settle)
+// exitFadeFall: fade + drop, faster, ease-in (an exit doesn't settle)
 gsap.to('.el', { opacity: 0, y: 8, duration: 0.33, ease: 'power2.in' });
 ```
 
@@ -95,15 +106,15 @@ gsap.to('.el', { opacity: 0, y: 8, duration: 0.33, ease: 'power2.in' });
 
 ```js
 const tl = gsap.timeline();
-tl.from('.el', { opacity: 0, y: 12, duration: 0.6, ease: 'power3.out' })  // in (base)
+tl.from('.el', { opacity: 0, y: 12, duration: 0.6, ease: 'power3.out' })  // in
   .to({},        { duration: 1.5 })                                       // hold
-  .to('.el',     { opacity: 0, y: 8, duration: 0.33, ease: 'power2.in' }); // out (fast)
+  .to('.el',     { opacity: 0, y: 8, duration: 0.33, ease: 'power2.in' }); // out
 ```
 
 ### CSS equivalents (no JS)
 
 ```css
-/* house ease entrance */
+/* fast-then-settle entrance */
 .el { animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
@@ -113,7 +124,7 @@ tl.from('.el', { opacity: 0, y: 12, duration: 0.6, ease: 'power3.out' })  // in 
 
 ## Brand kit — set the palette once, re-skin everything
 
-Don't hardcode hex and font per snippet. Declare the brand as top-level `merge[]` fields and reference the tokens in every clip's `html`/`css`/`js` — one edit re-skins the whole video — brand tokens applied once, via Shotstack merge:
+Declare the brand as top-level `merge[]` fields and reference them in every clip's `html`/`css`/`js`, instead of hardcoding hex and font per clip — one edit re-skins the whole video.
 
 ```json
 "merge": [
@@ -129,23 +140,19 @@ Don't hardcode hex and font per snippet. Declare the brand as top-level `merge[]
 .cta   { background: {{accent}}; }
 ```
 
-`merge` find/replace runs over the whole edit, including `html`/`css`/`js` strings, so `{{accent}}` resolves everywhere. Keep one accent and use it sparingly — a headline word, a number, a CTA, one glow — everything else neutral. **Colour is earned, never sprinkled.**
+`merge` find/replace runs over the whole edit, including `html`/`css`/`js` strings, so `{{accent}}` resolves everywhere. Follow the brand's own rules for how much accent colour to use; without them, one accent on a headline word, a number or a CTA is a safe start.
 
-## Motion checklist
+## Before rendering
 
-Before rendering anything animated:
-
-1. **Durations from the scale?** (`0.6` in, `0.33` out — not `0.45`, `0.7`, `1.2`.)
-2. **House ease, not linear?** `power3.out` / `cubic-bezier(0.16,1,0.3,1)` for tracked motion.
-3. **Overshoot only on one hero element**, if at all.
-4. **Stagger is `0.13`**, applied via `stagger` / `animation-delay`.
-5. **Travel 12–24 px; scale ≥ 0.92.** Restraint over flash.
-6. **One focal element per moment;** competing elements staggered.
-7. **It holds before it cuts** (settled `hold`, not an instant exit).
-8. **Brand colours via `merge[]`**, accent used sparingly.
+1. **Built-in options are valid:** preset, transition, effect, `interpolation` and `easing` names come from the schema; `direction` is set where a preset requires it.
+2. **Built-in motion doesn't double up:** one animation per property per clip; a preset and a keyframe don't both move the same text.
+3. **html5 motion is seekable:** GSAP, CSS or `__shotstackSeek`, with no timers.
+4. **Each clip's `length` covers its entrance, any hold and its exit.**
+5. **Timings are consistent across the edit**, whatever values the brief called for.
+6. **Brand colours via `merge[]`.**
 
 ## See also
 
-- the HTML5 snippets — ready-made clips that already follow these tokens
+- the HTML5 snippets — ready-made clips built on the defaults above
 - the HTML5 guide — the html5 sandbox rules these obey (seekable-only, sizing, fonts)
-- the agent guide → "Motion language" — the compact token summary (shared with the MCP server)
+- the agent guide → "Motion" — the compact summary (shared with the MCP server)

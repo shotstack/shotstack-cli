@@ -62,6 +62,7 @@ export function filterBlocks(text: string, surface: Surface, layer: LayerMode, f
 		}
 		if (c) {
 			if (!open || open.kind !== c[1]) throw new Error(`${file}:${i + 1}: unmatched /${c[1]}`);
+			if (layer === "only" && open.kind === "layer") out.push("");
 			open = null;
 			continue;
 		}
