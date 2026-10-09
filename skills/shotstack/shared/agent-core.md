@@ -222,7 +222,7 @@ Use only the **current** asset types; the deprecated ones still parse but should
 | `image` | Static image — `jpg`, `png`, `webp`, `gif`, `bmp`, `tiff` — or AI-generated from a `prompt`. |
 | `audio` | Audio clip placed at a specific time on the timeline, or AI-generated speech or music from a `prompt`. |
 | `rich-text` | Styled text overlay with full typography control. **Use this instead of `text`/`html`/`title`.** |
-| `svg` | Vector graphics from raw SVG markup: `src` starts with `<svg`, never a URL or `data:` URI (the render fails). See `references/svg.md`. |
+| `svg` | Vector graphics from raw SVG markup: `src` starts with `<svg`, never a URL or `data:` URI (the render fails). See **`svg` assets** below. |
 | `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap with its plugins (SplitText, DrawSVG, MorphSVG, MotionPath, Flip and more), d3, anime and lottie. See `references/html5.md`. **Never use the deprecated `html` asset.** |
 | `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See `references/caption.md`. |
 | `luma` | Luma matte for masking effects. |
@@ -243,6 +243,29 @@ For background music, **use an `audio` asset on its own track** with `length: "e
 | `shape` | `svg` with `<rect>`, `<circle>`, `<polygon>` etc. |
 | `timeline.soundtrack` | `audio` asset on its own track with `length: "end"` |
 | `text-to-image`, `image-to-video`, `text-to-speech` | `image`, `video` or `audio` with `prompt` and `model` (below) |
+
+### `svg` assets
+
+`src` **is the SVG markup itself**, starting with `<svg`. Never a URL and never a data URI (`data:image/svg+xml;…`, base64 or URL-encoded): those fail to parse, so Studio shows an empty placeholder and the rendered video leaves the shape out. Write colours as plain `#hex`, not `%23`. `data:` URIs belong inside `html5` assets only.
+
+Every `src` must include `xmlns="http://www.w3.org/2000/svg"`, a `viewBox`, and `width` and `height` in pixels. Without them the renderer can't size or place the shape.
+
+```json
+{
+  "asset": {
+    "type": "svg",
+    "src": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\" width=\"200\" height=\"200\"><circle cx=\"100\" cy=\"100\" r=\"90\" fill=\"#142033\" stroke=\"#F2C14E\" stroke-width=\"6\"/></svg>"
+  },
+  "start": 0,
+  "length": 3,
+  "width": 200,
+  "height": 200
+}
+```
+
+- **Supported:** `<path>`, `<rect>`, `<circle>`, `<ellipse>`, `<line>`, `<polygon>`, `<polyline>`, `<g>`, with `fill`, `fill-opacity`, `stroke`, `stroke-width`, `stroke-opacity` and `transform`.
+- **Unsupported:** `<text>` (use `rich-text`), `<image>` (use `image`), `<animate>`/`<animateTransform>` (animate the clip instead; only the first frame renders), `<foreignObject>`, most `<filter>`s, and external `<use>` references.
+- A plain coloured box behind text doesn't need SVG: `rich-text` has `background.color`, `opacity` and `borderRadius`. Use SVG for shapes rich-text can't draw, such as badges, rings, dividers and speech bubbles.
 
 ### AI-generated assets
 
@@ -293,7 +316,11 @@ Paste the **url** into `timeline.fonts[].src`, paste the **family** into `asset.
 | Anton (display) | `1Ptgg87LROyAm0K08i4gS7lu` | `https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm0K08i4gS7lu.ttf` |
 | Playfair Display (serif, variable) | `nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU` | `https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXPTvSgWE_-xU.ttf` |
 
-Variable fonts cover the full weight range (100–900) from a single URL — set `font.weight` on the clip. For a font not listed: copy an entry **verbatim** from the Studio SDK catalogue (~400 fonts) at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>, or open the font on <https://fonts.google.com>, view the CSS, and copy the exact `.ttf` URL from the `@font-face` `src`. Never hand-edit the version or hash segments.
+Variable fonts cover the full weight range (100–900) from a single URL — set `font.weight` on the clip. Poppins, Bebas Neue and Anton aren't variable: the listed URL is the 400 weight.
+
+For a font not listed: copy an entry **verbatim** from the Studio SDK catalogue (~400 fonts) at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>, or open the font on <https://fonts.google.com>, view the CSS, and copy the exact `.ttf` URL from the `@font-face` `src`. Never hand-edit the version or hash segments.
+
+Never invent or hand-edit a font URL. If a font isn't listed and you can't copy its exact entry, use the closest listed font.
 
 ### Usage example
 
