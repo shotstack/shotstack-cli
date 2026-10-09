@@ -59,13 +59,13 @@ These string values are accepted in addition to numbers:
 
 `"end"` does NOT loop short audio — use a numeric `length` if you need precise control.
 
-The `alias://` protocol is also used in `rich-caption` `src` to auto-transcribe a referenced audio/video clip — see `references/caption.md`.
+The `alias://` protocol is also used in `rich-caption` `src` to auto-transcribe a referenced audio/video clip — see the captions guide.
 
 ## Public HTTPS URLs only
 
 All asset `src` URLs must be publicly accessible HTTPS. **No local file paths, no `data:` URIs, no signed URLs that expire mid-render.** The render workers fetch assets from the public internet.
 
-For test renders without your own assets, use the placeholder library at <https://shotstack-assets.s3.amazonaws.com/> — see `references/asset-library.md`.
+For test renders without your own assets, use the placeholder library at <https://shotstack-assets.s3.amazonaws.com/> — see the placeholder asset library.
 
 ## Don't overlap clips on the same track
 
@@ -89,16 +89,9 @@ Clips on the same track must not have overlapping `start`/`length` ranges — ov
 
 Sequential clips (one finishes, the next starts) **can** share a track — `"start": "auto"` chains them. A cross-fade needs two tracks with a small time overlap and a `transition` on each.
 
-<!-- surface:cli -->
-**Validate before you render:** `shotstack validate <file>` catches same-track overlaps — plus unloaded fonts, non-public `src` URLs, and wrong property names/enums — offline, no API key, no credits.
-<!-- /surface -->
-
 ## Clip motion & rich-text fields (cheatsheet)
 
 Compose from this rather than round-tripping the full schema — these are the values renders actually use.
-<!-- surface:cli -->
-`api.edit.json` stays authoritative; `shotstack validate` checks against it.
-<!-- /surface -->
 
 **Clip-level (wraps any asset):**
 
@@ -135,11 +128,11 @@ Compose from this rather than round-tripping the full schema — these are the v
 
 `align.horizontal` = `left|center|right`; `align.vertical` = `top|middle|bottom` (**not** `center`). `animation.preset` = `fadeIn` `slideIn` `typewriter` `ascend` `shift` `movingLetters`; `animation.style` = `character|word`; `animation.direction` = `left|right|up|down`. Give the clip a `width`/`height` box so text wraps and aligns where you expect.
 
-For motion beyond this (kinetic type, value reveals, shine sweeps, grain, pulsing CTAs) reach for `html5` — see [`references/html5-snippets.md`](../references/html5-snippets.md).
+For motion beyond this (kinetic type, value reveals, shine sweeps, grain, pulsing CTAs) reach for `html5` — see the HTML5 snippets.
 
 ## Motion
 
-Timing, easing and rhythm are yours to design. Built-in motion takes fixed options from the schema; `html5` takes any seekable animation. Detail and recipes in [`references/motion.md`](../references/motion.md).
+Timing, easing and rhythm are yours to design. Built-in motion takes fixed options from the schema; `html5` takes any seekable animation. Detail and recipes in the motion guide.
 
 - **Seconds, not frames:** convert frame-based specs with `output.fps`.
 - **Clip level, fixed options:** `transition` in/out (engine-fixed timing, `Slow`/`Fast` variants), `effect` (Ken Burns drift) and keyframe tweens on `scale`, `opacity`, `offset`, `rotate`, `skew`, `volume` and `speed` (see Keyframes above). Keyframe `interpolation` is `linear`, `bezier` or `constant`, and `easing` comes from a fixed list (`easeOutCubic`, `easeInOutBack`, …).
@@ -154,7 +147,7 @@ Timing, easing and rhythm are yours to design. Built-in motion takes fixed optio
 
 Clip-level `width`/`height` (pixels) define a bounding box. For `image`/`video`, `fit` fills it — `crop` (keep aspect, crop overflow) · `contain` (letterbox) · `cover` (**stretch, distorts**) · `none`. For `rich-text`, that same clip box sets the text-wrap width and the area `align` positions within — **size text on the clip, not the asset.** Without `width`/`height` a clip fills the frame, so unsized text centres across the whole output. `scale` then multiplies the result (uniform on both axes).
 
-Order of operations: fit → position → offset → rotate → scale. Full reference: [`references/positioning.md`](../references/positioning.md).
+Order of operations: fit → position → offset → rotate → scale. Full reference: the positioning guide.
 
 ## Output resolution
 
@@ -170,7 +163,6 @@ Pick `output.resolution` (preset) OR `output.size.width`+`output.size.height` (c
 
 Custom sizes must be divisible by 2.
 
-<!-- surface:cli,mcp -->
 ## Merge fields
 
 Top-level `merge[]` (sibling of `timeline`/`output`, NOT a clip property) is a simple find-and-replace that runs over the entire Edit JSON **before** any asset is processed. Each entry is `{ "find": "<TOKEN>", "replace": "<value>" }` — the `find` value is the token name **without** braces; every `{{TOKEN}}` occurrence in any string throughout the Edit is swapped for the value.
@@ -214,11 +206,6 @@ Top-level `merge[]` (sibling of `timeline`/`output`, NOT a clip property) is a s
 
 **Checking merge results:** pass `?data=true&merged=true` on the status request to see the merged Edit JSON in the response — useful for debugging unresolved placeholders.
 
-<!-- /surface -->
-<!-- surface:cli -->
-**Validate caveat:** `shotstack validate` checks `html5` JS syntax **before** merge resolution. A `{{TOKEN}}` inside a JS string literal (e.g. `color: "{{ACCENT}}"`) is valid JS and passes. A `{{TOKEN}}` in JS *code* position (not inside a string) may fail validation pre-merge but work at render time post-merge — keep merge fields inside string literals to avoid false positives.
-<!-- /surface -->
-
 ## Asset types
 
 Use only the **current** asset types; the deprecated ones still parse but should not be used in new templates.
@@ -232,8 +219,8 @@ Use only the **current** asset types; the deprecated ones still parse but should
 | `audio` | Audio clip placed at a specific time on the timeline, or AI-generated speech or music from a `prompt`. |
 | `rich-text` | Styled text overlay with full typography control. **Use this instead of `text`/`html`/`title`.** |
 | `svg` | Vector graphics from raw SVG markup: `src` starts with `<svg`, never a URL or `data:` URI (the render fails). See **`svg` assets** below. |
-| `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap with its plugins (SplitText, DrawSVG, MorphSVG, MotionPath, Flip and more), d3, anime and lottie. See `references/html5.md`. **Never use the deprecated `html` asset.** |
-| `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See `references/caption.md`. |
+| `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap with its plugins (SplitText, DrawSVG, MorphSVG, MotionPath, Flip and more), d3, anime and lottie. See the HTML5 guide. **Never use the deprecated `html` asset.** |
+| `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See the captions guide. |
 | `luma` | Luma matte for masking effects. |
 
 `timeline.fonts[]` is a separate field for custom font URLs (not an asset type).
@@ -284,9 +271,7 @@ Set `prompt` and `model` on an `image`, `video` or `audio` asset and it is gener
 { "asset": { "type": "video", "prompt": "Slow dolly across a rain-soaked neon street at night", "model": "seedance-2.0-text-to-video", "options": { "resolution": "720p" } }, "start": 0, "length": 5 }
 ```
 
-<!-- surface:cli,mcp -->
 The models endpoint (`GET /models`) lists each model, whether the account can use it, and the JSON Schema for its `options`. `POST /generate/quote` takes the same body as `POST /generate` and returns its cost in credits without charging.
-<!-- /surface -->
 
 Options outside that schema are rejected. To animate a still, use an image-to-video model and put the image URL in `options.startSrc` (`inputSrc` on the original image-to-video models).
 
@@ -300,7 +285,7 @@ One overlay is a `rich-text` job. **Several videos "in different styles" is not*
 |---|---|---|
 | 1 — type & layout | `rich-text` | Titles, lower-thirds, kickers, captions, price/CTA pills. Fast and reliable; the right default for static styled text. |
 | 2 — shapes | `svg` | Colour panels, rules, badges, frames, geometric accents behind or around type. |
-| 3 — motion graphics | `html5` | Kinetic type, value reveals, shine sweeps, animated gradients, film grain, masked reveals, data-driven overlays — anything that should *move* beyond a `transition` or a Ken-Burns `effect`. gsap and its plugins, anime, d3 and lottie are preloaded. See [`references/html5.md`](../references/html5.md), the effects palette in [`references/html5-effects.md`](../references/html5-effects.md), and the copy-paste clips in [`references/html5-snippets.md`](../references/html5-snippets.md). |
+| 3 — motion graphics | `html5` | Kinetic type, value reveals, shine sweeps, animated gradients, film grain, masked reveals, data-driven overlays — anything that should *move* beyond a `transition` or a Ken-Burns `effect`. gsap and its plugins, anime, d3 and lottie are preloaded. See the HTML5 guide, the effects palette in the HTML5 effects palette, and the copy-paste clips in the HTML5 snippets. |
 
 **When the brief asks for a *range*, deliberately spread across the ladder.** A strong set: a couple of clean `rich-text` studio cuts, one or two `svg` colour-block promos, and several `html5` pieces carrying the real motion (kinetic headline, value reveal, shine-swept CTA, grain-graded teaser). If every clip in a "variety" brief is `rich-text`, you have not delivered variety.
 
@@ -331,9 +316,7 @@ Paste the **url** into `timeline.fonts[].src`, paste the **family** into `asset.
 
 Variable fonts cover the full weight range (100–900) from a single URL — set `font.weight` on the clip. Poppins, Bebas Neue and Anton aren't variable: the listed URL is the 400 weight.
 
-<!-- surface:cli,mcp -->
 For a font not listed: copy an entry **verbatim** from the Studio SDK catalogue (~400 fonts) at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>, or open the font on <https://fonts.google.com>, view the CSS, and copy the exact `.ttf` URL from the `@font-face` `src`. Never hand-edit the version or hash segments.
-<!-- /surface -->
 
 Never invent or hand-edit a font URL. If a font isn't listed and you can't copy its exact entry, use the closest listed font.
 
@@ -362,21 +345,15 @@ Never invent or hand-edit a font URL. If a font isn't listed and you can't copy 
 ```
 
 Use the `family` column from the table above: the URL's filename without `.ttf`, matched ignoring case. The family name stored inside the font file also matches, but it isn't always the name on Google Fonts (Space Grotesk's file calls itself `Space Grotesk Light`), so the filename is the safe choice. A `font.family` that matches nothing renders in Roboto with no error. The exception is a lone entry in `timeline.fonts[]`, which is used whatever `font.family` says, so a wrong name only shows once a second font is added.
-<!-- surface:cli -->
-`shotstack validate` warns on any `font.family` that isn't a built-in or a loaded filename.
-<!-- /surface -->
 
 ## Top 5 mistakes
 
 1. **Reverse track order.** `tracks[0]` is the TOP layer, not the bottom. Captions go in early tracks; backgrounds go in late tracks.
 2. **System fonts.** `Arial`, `Helvetica`, `Times New Roman`, etc. are not installed. Use Google Fonts via `timeline.fonts[]`, copied verbatim from the verified catalogue in the Fonts section.
-3. **Captions fill the whole frame.** A `rich-caption` clip without `width`, `height`, and `fit: "none"` covers the entire output. Use a named preset from `references/caption.md`.
+3. **Captions fill the whole frame.** A `rich-caption` clip without `width`, `height`, and `fit: "none"` covers the entire output. Use a named preset from the captions guide.
 4. **`<text>` inside an SVG asset.** Raw `<text>` is unsupported. Use a `rich-text` asset for any text content; reserve SVG for shapes only.
-5. **Composing custom caption styles when presets exist.** The five named presets (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) cover the common styles. Use one verbatim from `references/caption.md` unless the user asks for something specific.
+5. **Composing custom caption styles when presets exist.** The five named presets (Nico, Kai, Kapow, Lovely Little Lychee, Rizz) cover the common styles. Use one verbatim from the captions guide unless the user asks for something specific.
 
 ## Per-topic deep dives
 
 For details beyond this core guide (rich-caption presets, SVG constraints, full font URL list, troubleshooting), fetch the topic-specific docs from `https://shotstack.io/docs/guide/llms-full.txt`.
-<!-- surface:cli -->
-The `references/` directory in the Shotstack CLI repo has the same detail.
-<!-- /surface -->
