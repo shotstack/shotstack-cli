@@ -4,13 +4,10 @@ Copy-paste `html5` clips that "pop" — kinetic type, value reveals, shine sweep
 pulsing CTAs, grain. Each is a **single clip**: paste it into a track's
 `clips[]`, set `start`/`length`, and position with `offset`.
 
-Every snippet here is composed from the house **[`motion.md`](motion.md)** tokens —
-one duration scale (`base` 0.6 s in, `fast` 0.33 s out), one house ease
-(`power3.out` / `cubic-bezier(0.16,1,0.3,1)`), one stagger (`0.13 s`), and a single
-shared palette (ink `#141414`, accent `#D96B82`). That shared vocabulary is what
-makes a set of these clips feel like one production. **When you adapt a snippet,
-keep the tokens** — change the words, the colours and the canvas size, not the
-easings and durations. Read [`motion.md`](motion.md) for the why and the full recipe set.
+These are examples to remix. They share one palette (ink `#141414`, accent `#D96B82`)
+so they combine cleanly as they are; change anything — timing, easing, travel, colour,
+layout. [`motion.md`](motion.md) covers what each layer can animate and the easing
+available.
 
 Read [`html5.md`](html5.md) for the rules these obey. The non-negotiables:
 
@@ -25,15 +22,15 @@ Read [`html5.md`](html5.md) for the rules these obey. The non-negotiables:
 
 Coordinates below assume a **1080×1920 vertical** canvas; adjust `offset` for other sizes.
 
-> **Continuous-motion exception.** Looping or drifting effects (the pulse, the sweep, the grain) are *ambient*, not entrances — they correctly use `ease-in-out` / `linear` and their own loop durations rather than the entrance tokens. Everything that *reveals* uses the house entrance tokens.
+> **Continuous motion.** Looping or drifting effects (the pulse, the sweep, the grain) are *ambient*, not entrances — they use `ease-in-out` / `linear` and their own loop durations.
 
 ---
 
 ## 1. Blur reveal — calm text entrance
 
-**Category** entrances · **Use when** the default text reveal; the calm house entrance for a title or line — reach for a punchier one (snippet 2) only with intent · **Canvas** 900×300 · **Tags** text, reveal, entrance, blur
+**Category** entrances · **Use when** a calm text reveal for a title or line; for energy, use snippet 2 · **Canvas** 900×300 · **Tags** text, reveal, entrance, blur
 
-The reference entrance: opacity, blur and a 16 px rise settle **together** off one tween (one progress, many channels) on the house ease — no overshoot. Quietly cinematic.
+The reference entrance: opacity, blur and a 16 px rise settle **together** off one tween (one progress, many channels) on `power3.out`. Quietly cinematic.
 
 ```json
 {
@@ -59,7 +56,7 @@ The reference entrance: opacity, blur and a 16 px rise settle **together** off o
 
 **Category** entrances · **Use when** a headline needs energy — a hype/hero title where each word punches up in sequence · **Canvas** 980×420 · **Tags** text, reveal, entrance, stagger, hero
 
-Each word springs up in sequence. GSAP timeline, fully seekable, on the house stagger.
+Each word springs up in sequence. GSAP timeline, fully seekable, words `0.13 s` apart.
 
 ```json
 {
@@ -77,7 +74,7 @@ Each word springs up in sequence. GSAP timeline, fully seekable, on the house st
 }
 ```
 
-Each word starts `translateY(120%)`, opacity 0; `0.6 s` rise on `power3.out`, words `0.13 s` apart (the house stagger); a trailing empty tween holds the title still. **Punchy variant:** this is the one "hero" spot where a pop is allowed — swap `ease:'power3.out'` for `ease:'back.out(1.4)'` for a gentle overshoot. Keep it to one headline per scene. `Anton` falls back to `system-ui` unless inlined.
+Each word starts `translateY(120%)`, opacity 0; `0.6 s` rise on `power3.out`, words `0.13 s` apart; a trailing empty tween holds the title still. **Punchy variant:** swap `ease:'power3.out'` for `ease:'back.out(1.4)'` for an overshoot, or tighten the stagger for faster delivery. `Anton` falls back to `system-ui` unless inlined.
 
 ---
 
@@ -137,7 +134,7 @@ A specular highlight slides across text — premium product gloss. *Continuous* 
 
 **Category** graphics (emphasis) · **Use when** drawing the eye to a CTA on an end card · **Canvas** 620×170 · **Tags** cta, button, pulse, loop · **Accent** `#D96B82`
 
-A "SHOP NOW" pill with a soft breathing glow. *Ambient loop* — `ease-in-out`, its own 1.6 s cycle (exempt from the entrance tokens). CSS keyframes seek cleanly.
+A "SHOP NOW" pill with a soft breathing glow. *Ambient loop* — `ease-in-out`, its own 1.6 s cycle. CSS keyframes seek cleanly.
 
 ```json
 {
@@ -155,7 +152,7 @@ A "SHOP NOW" pill with a soft breathing glow. *Ambient loop* — `ease-in-out`, 
 }
 ```
 
-The accent (`#D96B82`) is used here as the single earned colour. The clip is wider/taller than the pill so the glow has room. For a non-looping single pop, replace `infinite` with `1`.
+The accent (`#D96B82`) carries the glow. The clip is wider/taller than the pill so the glow has room. For a non-looping single pop, replace `infinite` with `1`.
 
 ---
 
@@ -197,12 +194,12 @@ The snippets share one palette (ink `#141414`, accent `#D96B82`) so a set alread
 ]
 ```
 
-Then in any snippet's CSS, swap the literal hex for the token: `color:{{ink}}`, `background:{{accent}}`, `font-family:{{font}}`. One edit re-skins every clip. Keep the accent **earned** — a headline word, a number, a CTA, one glow; everything else neutral. (If you ship a snippet *without* a matching `merge[]` entry, leave the literal hex in — an undefined `{{token}}` renders as invalid CSS.)
+Then in any snippet's CSS, swap the literal hex for the token: `color:{{ink}}`, `background:{{accent}}`, `font-family:{{font}}`. One edit re-skins every clip. (If you ship a snippet *without* a matching `merge[]` entry, leave the literal hex in — an undefined `{{token}}` renders as invalid CSS.)
 
 ## Composing these
 
 - Each snippet is one clip on its own track. Layer order is top-track-first (see `agent-core.md`) — grain and shine go in **early** tracks, backgrounds in **late** ones.
 - They don't overlap on a single track, so `shotstack validate <file>` stays clean. Run it before rendering.
 - Reuse text via top-level `merge[]` (`{{title}}` in the HTML) — see the lower-third example in `html5.md`.
-- Mix calm and punchy deliberately: a `blur-reveal` title, a `kinetic-headline` hero line, a `value-reveal` stat, a `shine` on the product, a pulsing CTA — all on the same tokens, so the set reads as one piece.
+- Mix calm and punchy: a `blur-reveal` title, a `kinetic-headline` hero line, a `value-reveal` stat, a `shine` on the product, a pulsing CTA.
 - Heavier motion = longer render. Preview in `shotstack studio <file>` before spending credits.
