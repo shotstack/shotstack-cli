@@ -64,7 +64,9 @@ Speech length is not knowable in advance. Set the clip's `length` to `"auto"` an
 
 **Eleven Music.** A prompt answers genre, mood, instrumentation, tempo and production era whether or not you intend it to. Whatever you leave out, the model chooses.
 
-**Production vocabulary does real work** — "dusty", "vinyl crackle", "sparse", "ethereal". Give a BPM when timing matters; the model holds a stated tempo precisely. Naming a key helps, less reliably.
+**Production vocabulary does real work** — "dusty", "vinyl crackle", "sparse", "ethereal". Naming a key helps, less reliably.
+
+**State a BPM, then measure.** The model holds a stated tempo closely, but it places drops and sections where it likes, whatever the prompt says. Before timing cuts or motion to a generated track, analyse it: see [`beat-sync.md`](beat-sync.md).
 
 **Naming a musician or band is refused**, as is quoting copyrighted lyrics. The error includes a suggested alternative prompt. Describe the era and production style instead: "1990s trip-hop with detuned Rhodes and a heavy swung break".
 
