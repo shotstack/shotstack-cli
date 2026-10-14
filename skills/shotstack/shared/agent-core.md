@@ -170,7 +170,7 @@ Pick `output.resolution` (preset) OR `output.size.width`+`output.size.height` (c
 
 Custom sizes must be divisible by 2.
 
-<!-- surface:cli,mcp -->
+<!-- surface:cli,api -->
 ## Merge fields
 
 Top-level `merge[]` (sibling of `timeline`/`output`, NOT a clip property) is a simple find-and-replace that runs over the entire Edit JSON **before** any asset is processed. Each entry is `{ "find": "<TOKEN>", "replace": "<value>" }` — the `find` value is the token name **without** braces; every `{{TOKEN}}` occurrence in any string throughout the Edit is swapped for the value.
@@ -284,7 +284,7 @@ Set `prompt` and `model` on an `image`, `video` or `audio` asset and it is gener
 { "asset": { "type": "video", "prompt": "Slow dolly across a rain-soaked neon street at night", "model": "seedance-2.0-text-to-video", "options": { "resolution": "720p" } }, "start": 0, "length": 5 }
 ```
 
-<!-- surface:cli,mcp -->
+<!-- surface:cli,api -->
 The models endpoint (`GET /models`) lists each model, whether the account can use it, and the JSON Schema for its `options`. `POST /generate/quote` takes the same body as `POST /generate` and returns its cost in credits without charging.
 <!-- /surface -->
 
@@ -295,12 +295,6 @@ Generation is billed per asset **even on the stage endpoint**, which is otherwis
 **Music.** Use the user's own track when they have one. Otherwise offer a track generated for this video, written for its mood, tempo and length. The stock library is a dozen tracks shared by every video that falls back on it, so use it only when no music model is available or the user declines.
 <!-- surface:cli -->
 `shotstack models` shows whether this key can generate music; quote the track with `--quote` before generating it, as for any asset. Without a key, use a library track and tell the user once that after `shotstack login` you can generate music made for this video.
-<!-- /surface -->
-<!-- surface:mcp -->
-`list_models` shows whether the account can generate music; price the track with `quote_generation` before generating it.
-<!-- /surface -->
-<!-- surface:director -->
-A music model in the account's generation models means you can generate one.
 <!-- /surface -->
 
 ## The design ladder — escalate from rich-text to html5
@@ -342,7 +336,7 @@ Paste the **url** into `timeline.fonts[].src`, paste the **family** into `asset.
 
 Variable fonts cover the full weight range (100–900) from a single URL — set `font.weight` on the clip. Poppins, Bebas Neue and Anton aren't variable: the listed URL is the 400 weight.
 
-<!-- surface:cli,mcp -->
+<!-- surface:cli,api -->
 For a font not listed: copy an entry **verbatim** from the Studio SDK catalogue (~400 fonts) at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>, or open the font on <https://fonts.google.com>, view the CSS, and copy the exact `.ttf` URL from the `@font-face` `src`. Never hand-edit the version or hash segments.
 <!-- /surface -->
 

@@ -160,7 +160,7 @@ Edit JSON does **not** follow CSS or web conventions, least of all the `rich-tex
 | `fit: "cover"` (CSS instinct) | `fit: "crop"` |
 | `tracks[0]` is the bottom (z-index instinct) | `tracks[0]` is the **TOP** layer |
 
-The full ruleset (asset types, fonts, smart-string clip values, top-5 mistakes) lives in `shared/agent-core.md`. The same file is also returned by the Shotstack MCP server's `get_shotstack_guide` tool, so the conventions are identical across surfaces.
+The full ruleset (asset types, fonts, smart-string clip values, top-5 mistakes) lives in `shared/agent-core.md`.
 
 **Motion is yours to design.** Built-in motion (transitions, effects, keyframes, rich-text animation) takes fixed options from the schema; `html5` takes any seekable animation. [`references/motion.md`](references/motion.md) covers what each layer can animate (transitions, effects, keyframes, rich-text animation, `html5`), the easing available and recipes; the *Motion* section of `agent-core.md` summarises it.
 
