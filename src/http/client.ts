@@ -17,7 +17,8 @@ export class ApiError extends Error {
 }
 
 export interface ClientOptions {
-  apiKey: string;
+  // Absent for keyless endpoints such as /analysis.
+  apiKey?: string;
   env: ResolvedEnv;
 }
 
@@ -30,7 +31,7 @@ export function createClient(options: ClientOptions) {
     const response = await fetch(`${baseUrl}${path}`, {
       method,
       headers: {
-        "x-api-key": options.apiKey,
+        ...(options.apiKey !== undefined ? { "x-api-key": options.apiKey } : {}),
         "x-shotstack-origin": "cli",
         "x-shotstack-environment": options.env.name,
         "user-agent": userAgent,
