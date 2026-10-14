@@ -232,6 +232,9 @@ Options outside that schema are rejected. To animate a still, use an image-to-vi
 
 Generation is billed per asset **even on the stage endpoint**, which is otherwise free. Renders containing AI assets take longer, because the render waits for each generation.
 
+**Music.** Use the user's own track when they have one. Otherwise offer a track generated for this video, written for its mood, tempo and length. The stock library is a dozen tracks shared by every video that falls back on it, so use it only when no music model is available or the user declines.
+A music model in the account's generation models means you can generate one.
+
 ## The design ladder — escalate from rich-text to html5
 
 One overlay is a `rich-text` job. **Several videos "in different styles" is not** — making them all `rich-text` ships one look eight times. Match the asset to the ambition:

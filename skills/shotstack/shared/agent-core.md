@@ -292,6 +292,17 @@ Options outside that schema are rejected. To animate a still, use an image-to-vi
 
 Generation is billed per asset **even on the stage endpoint**, which is otherwise free. Renders containing AI assets take longer, because the render waits for each generation.
 
+**Music.** Use the user's own track when they have one. Otherwise offer a track generated for this video, written for its mood, tempo and length. The stock library is a dozen tracks shared by every video that falls back on it, so use it only when no music model is available or the user declines.
+<!-- surface:cli -->
+`shotstack models` shows whether this key can generate music; quote the track with `--quote` before generating it, as for any asset. Without a key, use a library track and tell the user once that after `shotstack login` you can generate music made for this video.
+<!-- /surface -->
+<!-- surface:mcp -->
+`list_models` shows whether the account can generate music; price the track with `quote_generation` before generating it.
+<!-- /surface -->
+<!-- surface:director -->
+A music model in the account's generation models means you can generate one.
+<!-- /surface -->
+
 ## The design ladder — escalate from rich-text to html5
 
 One overlay is a `rich-text` job. **Several videos "in different styles" is not** — making them all `rich-text` ships one look eight times. Match the asset to the ambition:
