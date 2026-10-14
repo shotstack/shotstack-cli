@@ -146,6 +146,7 @@ Timing, easing and rhythm are yours to design. Built-in motion takes fixed optio
 - **Combining on an existing asset:** keyframes move the whole clip while a `rich-text` preset animates the text inside it, so animate each property one way per clip. Keyframe `scale` multiplies `fit`, so a large scale on a low-resolution source shows its pixels.
 - **rich-text `animation`** is entrance-only (exits use the clip `transition.out`) with engine-fixed easing. `style` works only on `typewriter`/`shift`; `direction` is required for `slideIn`/`ascend`/`shift`/`movingLetters`.
 - **`html5`** gives full control: any seekable GSAP, anime.js, Lottie or CSS animation, any easing, per-element timing.
+- **To music:** measure the track before timing anything to it, then write cuts and motion in bars. Method in [`references/beat-sync.md`](../references/beat-sync.md).
 - **Brand once:** palette and font as top-level `merge[]` fields (`{{ink}}`, `{{accent}}`, `{{font}}`) resolve inside `html5` `html`/`css`/`js` too, so one edit re-skins the whole video.
 
 ## Positioning & coordinates
