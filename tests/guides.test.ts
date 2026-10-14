@@ -11,7 +11,7 @@ test("committed guides match the skill (run `bun run render:guides` after editin
 });
 
 test("no rendered guide carries CLI-only text, markers or skill file links", () => {
-	const cliOnly = /<!--|references\/|`[a-z0-9-]+\.md`|\]\([^)]*\.md|shotstack (validate|studio|render|login|generate|models|ingest)|--env|--quote|node --check/;
+	const cliOnly = /<!--|references\/|`[a-z0-9-]+\.md`|\]\([^)]*\.md|shotstack (validate|studio|render|login|generate|models|ingest|analyse|analyze)|--env|--quote|node --check/;
 	for (const [path, content] of rendered) {
 		const hit = content.split("\n").find((line) => cliOnly.test(line));
 		expect(hit, path).toBeUndefined();
