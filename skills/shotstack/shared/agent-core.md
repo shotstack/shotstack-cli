@@ -171,7 +171,6 @@ Pick `output.resolution` (preset) OR `output.size.width`+`output.size.height` (c
 
 Custom sizes must be divisible by 2.
 
-<!-- surface:cli,api -->
 ## Merge fields
 
 Top-level `merge[]` (sibling of `timeline`/`output`, NOT a clip property) is a simple find-and-replace that runs over the entire Edit JSON **before** any asset is processed. Each entry is `{ "find": "<TOKEN>", "replace": "<value>" }` — the `find` value is the token name **without** braces; every `{{TOKEN}}` occurrence in any string throughout the Edit is swapped for the value.
@@ -215,7 +214,6 @@ Top-level `merge[]` (sibling of `timeline`/`output`, NOT a clip property) is a s
 
 **Checking merge results:** pass `?data=true&merged=true` on the status request to see the merged Edit JSON in the response — useful for debugging unresolved placeholders.
 
-<!-- /surface -->
 <!-- surface:cli -->
 **Validate caveat:** `shotstack validate` checks `html5` JS syntax **before** merge resolution. A `{{TOKEN}}` inside a JS string literal (e.g. `color: "{{ACCENT}}"`) is valid JS and passes. A `{{TOKEN}}` in JS *code* position (not inside a string) may fail validation pre-merge but work at render time post-merge — keep merge fields inside string literals to avoid false positives.
 <!-- /surface -->
@@ -285,9 +283,7 @@ Set `prompt` and `model` on an `image`, `video` or `audio` asset and it is gener
 { "asset": { "type": "video", "prompt": "Slow dolly across a rain-soaked neon street at night", "model": "seedance-2.0-text-to-video", "options": { "resolution": "720p" } }, "start": 0, "length": 5 }
 ```
 
-<!-- surface:cli,api -->
 The models endpoint (`GET /models`) lists each model, whether the account can use it, and the JSON Schema for its `options`. `POST /generate/quote` takes the same body as `POST /generate` and returns its cost in credits without charging.
-<!-- /surface -->
 
 Options outside that schema are rejected. To animate a still, use an image-to-video model and put the image URL in `options.startSrc` (`inputSrc` on the original image-to-video models).
 
@@ -337,9 +333,7 @@ Paste the **url** into `timeline.fonts[].src`, paste the **family** into `asset.
 
 Variable fonts cover the full weight range (100–900) from a single URL — set `font.weight` on the clip. Poppins, Bebas Neue and Anton aren't variable: the listed URL is the 400 weight.
 
-<!-- surface:cli,api -->
 For a font not listed: copy an entry **verbatim** from the Studio SDK catalogue (~400 fonts) at <https://github.com/shotstack/shotstack-studio-sdk/blob/main/src/core/fonts/google-fonts.ts>, or open the font on <https://fonts.google.com>, view the CSS, and copy the exact `.ttf` URL from the `@font-face` `src`. Never hand-edit the version or hash segments.
-<!-- /surface -->
 
 Never invent or hand-edit a font URL. If a font isn't listed and you can't copy its exact entry, use the closest listed font.
 
