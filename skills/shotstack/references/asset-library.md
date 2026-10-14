@@ -32,6 +32,8 @@ https://shotstack-assets.s3.amazonaws.com/images/waterfall.jpeg
 
 Royalty-free tracks from the Unminus library, hosted on Shotstack's CDN. Use as `audio` assets on a dedicated track. (`timeline.soundtrack` is deprecated — use `audio` with `length: "end"` instead.)
 
+These are the fallback, not the default: the same few tracks sit under every video that uses them. When the user has no track, offer to generate one first (see *Music* in [`shared/agent-core.md`](../shared/agent-core.md)).
+
 ```
 https://shotstack-assets.s3.amazonaws.com/music/unminus/white.mp3
 https://shotstack-assets.s3.amazonaws.com/music/unminus/waveform.mp3
