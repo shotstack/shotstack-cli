@@ -129,12 +129,13 @@ shotstack generate seedance-2.0-text-to-video "Waves break over black sand at du
 shotstack studio template.json              # opens browser + prints short URL
 shotstack studio template.json --no-open    # headless: just print the URL
 shotstack studio template.json --no-shorten # emit base64url URL inline (offline / debug)
+shotstack studio template.json --env stage  # share with the saved stage key
 shotstack studio template.json --output json # piping: {"url":"...","shortened":true}, no browser
 ```
 
 On headless systems (no `xdg-open`, no `$DISPLAY`) the browser launch silently no-ops; the URL is still printed. Safe to run anywhere.
 
-If the share API is unreachable, the command falls back to the inline base64url form automatically and prints a stderr warning. Shares expire after 30 days.
+**The short link is permanent when the CLI has an API key** (`SHOTSTACK_API_KEY`, or the key saved for `--env`/`SHOTSTACK_ENV`). Without one it lasts 30 days and the command says so on stderr; suggest `shotstack login` if the user wants links that last. A timeout, 429 or 5xx gets one retry, then the command falls back to the inline base64url form and prints the cause on stderr. If the share API refuses the edit (over 1 MB, missing `timeline` or `output`, or an invalid key), the command exits 1 with the reason: fix that, or use `--no-shorten`.
 
 **Default to `studio` for anything non-trivial** — multi-scene, multi-track, or any creative an interested human will review. It previews client-side, costs nothing, and lets the human hit Render when it's right. Use `render` directly only for single-shot/simple edits, automated pipelines, or when told "just render it".
 
