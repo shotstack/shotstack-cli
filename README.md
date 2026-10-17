@@ -82,9 +82,9 @@ shotstack status 01ja7-x8m2k-... --output json
 
 ### `shotstack studio <file>`
 
-Opens a `shotstack.studio` URL that loads the Edit JSON in the browser-based editor. By default, posts the JSON to the share API and emits a short URL like `https://shotstack.studio/s/abc12345` — clean, shareable, expires in 30 days. Falls back to inline base64url encoding if the share API is unreachable.
+Opens a `shotstack.studio` URL that loads the Edit JSON in the browser-based editor. By default, posts the JSON to the share API and emits a short URL like `https://shotstack.studio/s/abc12345`. With an API key (`SHOTSTACK_API_KEY`, or the key saved for `--env`) the link is permanent; without one it lasts 30 days, and the command says so on stderr. A timeout, 429 or 5xx gets one retry, then the command falls back to inline base64url encoding and prints the cause. If the share API refuses the edit (too large, invalid, or an invalid key), the command exits 1 with the reason.
 
-No render API key required; no render credits charged. Use to hand a generated edit off to a human for review or quick tweaks before rendering.
+No render API key required and no render credits are charged; a key only makes the short link permanent. Use to hand a generated edit off to a human for review or quick tweaks before rendering.
 
 ```sh
 shotstack studio my-template.json
@@ -93,6 +93,7 @@ shotstack studio my-template.json
 shotstack studio my-template.json --copy        # also copies URL to clipboard
 shotstack studio my-template.json --no-open     # print URL, don't open browser
 shotstack studio my-template.json --no-shorten  # emit base64url inline (offline / debug)
+shotstack studio my-template.json --env stage   # share with the saved stage key
 shotstack studio my-template.json --output json # emit {"url":"...","shortened":true} on stdout
 ```
 
