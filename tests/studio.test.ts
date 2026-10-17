@@ -1,5 +1,8 @@
 import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from "bun:test";
 import { buildInlineUrl, buildStudioUrl, shareApiKey } from "../src/commands/studio.ts";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { ApiError } from "../src/http/client.ts";
 
 const sample = {
@@ -135,6 +138,7 @@ describe("share API rules", () => {
     const result = await buildStudioUrl(sample, { apiKey: "key" });
     const headers = fetchMock.mock.calls[0]![1]!.headers as Record<string, string>;
     expect(headers["x-api-key"]).toBe("key");
+    expect(fetchMock.mock.calls[0]![1]!.redirect).toBe("error");
     expect(result.shortened).toBe(true);
     expect(stderr).not.toHaveBeenCalled();
   });
@@ -145,6 +149,12 @@ describe("share API rules", () => {
     const headers = fetchMock.mock.calls[0]![1]!.headers as Record<string, string>;
     expect(headers["x-api-key"]).toBeUndefined();
     expect(String(stderr.mock.calls[0]![0])).toContain("lasts 30 days");
+  });
+
+  test("for dev, the note names the cause instead of asking for a key", async () => {
+    shareSequence(shared());
+    await buildStudioUrl(sample, { env: "dev" });
+    expect(String(stderr.mock.calls[0]![0])).toContain("Dev keys");
   });
 
   test("retries once after a timeout", async () => {
@@ -202,6 +212,16 @@ describe("shareApiKey", () => {
   test("uses the key a sandbox render would use", () => {
     process.env.SHOTSTACK_API_KEY = "stage-key";
     expect(shareApiKey("stage")).toBe("stage-key");
+  });
+
+  test("returns no key when none is set or saved", () => {
+    const dir = mkdtempSync(join(tmpdir(), "shotstack-creds-"));
+    delete process.env.SHOTSTACK_API_KEY;
+    try {
+      expect(shareApiKey("stage", join(dir, "credentials.json"))).toBeUndefined();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   test("shares anonymously for dev because Studio cannot validate dev keys", () => {

@@ -84,7 +84,7 @@ shotstack status 01ja7-x8m2k-... --output json
 
 Opens a `shotstack.studio` URL that loads the Edit JSON in the browser-based editor. By default, posts the JSON to the share API and emits a short URL like `https://shotstack.studio/s/abc12345`. With an API key (`SHOTSTACK_API_KEY`, or the key saved for `--env`) the link is permanent; without one it lasts 30 days, and the command says so on stderr. A timeout, 429 or 5xx gets one retry, then the command falls back to inline base64url encoding and prints the cause. If the share API refuses the edit (too large, invalid, or an invalid key), the command exits 1 with the reason.
 
-No render API key required; no render credits charged. Use to hand a generated edit off to a human for review or quick tweaks before rendering.
+No render API key required and no render credits are charged; a key only makes the short link permanent. Use to hand a generated edit off to a human for review or quick tweaks before rendering.
 
 ```sh
 shotstack studio my-template.json

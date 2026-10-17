@@ -123,7 +123,7 @@ shotstack generate seedance-2.0-text-to-video "Waves break over black sand at du
 
 ## Default workflow: preview in Studio (no key, no credits)
 
-**`shotstack studio <file>` is the default way to look at an edit** — prefer it over `render` unless you specifically need a cloud-exported MP4. It posts the JSON to https://shotstack.studio and opens `https://shotstack.studio/s/<slug>` in the browser — a short, shareable URL. No API key, no render credits charged; it previews client-side, so it works with no key. The human plays, edits, and decides whether to spend credits on a render.
+**`shotstack studio <file>` is the default way to look at an edit** — prefer it over `render` unless you specifically need a cloud-exported MP4. It posts the JSON to https://shotstack.studio and opens `https://shotstack.studio/s/<slug>` in the browser — a short, shareable URL. No render credits charged; it previews client-side, so it works with no key (a key only makes the short link permanent). The human plays, edits, and decides whether to spend credits on a render.
 
 ```sh
 shotstack studio template.json              # opens browser + prints short URL

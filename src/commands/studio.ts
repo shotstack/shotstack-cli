@@ -38,7 +38,7 @@ export const studioCommand = new Command("studio")
     }
 
     const apiKey = options.shorten ? shareApiKey(options.env) : undefined;
-    const { url, shortened } = await buildStudioUrl(template, { shorten: options.shorten, apiKey });
+    const { url, shortened } = await buildStudioUrl(template, { shorten: options.shorten, apiKey, env: options.shorten ? resolveEnvName(options.env) : undefined });
 
     if (!shortened && url.length > URL_WARN_THRESHOLD) {
       console.error(
@@ -62,7 +62,7 @@ interface StudioUrl {
 
 export async function buildStudioUrl(
   template: unknown,
-  options: { shorten?: boolean; apiKey?: string } = {}
+  options: { shorten?: boolean; apiKey?: string; env?: string } = {}
 ): Promise<StudioUrl> {
   const shouldShorten = options.shorten !== false;
   if (shouldShorten) {
@@ -70,7 +70,9 @@ export async function buildStudioUrl(
     if ("url" in shared) {
       if (!options.apiKey) {
         console.error(
-          "note: this link lasts 30 days. Run `shotstack login` or set SHOTSTACK_API_KEY to make your links permanent."
+          options.env === "dev"
+            ? "note: this link lasts 30 days. Dev keys can't make links permanent; use --env stage or --env v1."
+            : "note: this link lasts 30 days. Run `shotstack login` or set SHOTSTACK_API_KEY to make your links permanent."
         );
       }
       return { url: shared.url, shortened: true };
@@ -81,11 +83,11 @@ export async function buildStudioUrl(
 }
 
 // Studio validates keys against the production and sandbox Edit API only, so a dev key would be refused.
-export function shareApiKey(cliEnv: string | undefined): string | undefined {
+export function shareApiKey(cliEnv: string | undefined, credentialsFile?: string): string | undefined {
   const env = resolveEnvName(cliEnv);
   if (env === "dev") return undefined;
   try {
-    return requireApiKey(env);
+    return requireApiKey(env, credentialsFile);
   } catch (err) {
     if (err instanceof MissingApiKeyError) return undefined;
     throw err;
@@ -114,6 +116,8 @@ async function postShare(template: unknown, headers: Record<string, string>): Pr
       method: "POST",
       headers,
       body: JSON.stringify(template),
+      // The key must never follow a redirect to another host.
+      redirect: "error",
       signal: AbortSignal.timeout(SHARE_TIMEOUT_MS),
     });
   } catch (err) {
