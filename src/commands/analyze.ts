@@ -64,10 +64,18 @@ export async function runAnalyze(
     return { response: job, exitCode: 1 };
   }
   // The map is public JSON on the CDN: fetch it without the API key.
-  const map = (await (await fetch(job.url!)).json()) as MusicMap;
+  if (!job.url) return fail(job, "analysis finished without a map URL");
+  const res = await fetch(job.url);
+  if (!res.ok) return fail(job, `could not fetch the analysis map (${res.status}) from ${job.url}`);
+  const map = (await res.json()) as MusicMap;
   emit(format, map, `done  ${formatSummary(map)}`);
   if (format !== "json") console.error("Print the full map with --output json.");
   return { response: job, exitCode: 0 };
+}
+
+function fail(job: Analysis, message: string): CommandResult {
+  console.error(message);
+  return { response: job, exitCode: 1 };
 }
 
 export function formatSummary(m: MusicMap): string {

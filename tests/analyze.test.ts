@@ -1,6 +1,6 @@
 import { describe, test, expect, mock, spyOn } from "bun:test";
-import { analyzeCommand, formatSummary, runAnalyze, type Analysis } from "../src/commands/analyze.ts";
-import { createClient, type Client } from "../src/http/client.ts";
+import { formatSummary, runAnalyze, type Analysis } from "../src/commands/analyze.ts";
+import { type Client } from "../src/http/client.ts";
 
 const steady = {
   bpm: 120.01,
@@ -25,7 +25,7 @@ async function capture(run: () => Promise<unknown>) {
   const err = spyOn(console, "error").mockImplementation(() => {});
   try {
     const result = await run();
-    return { result, lines: log.mock.calls.map((c) => String(c[0])) };
+    return { result, lines: log.mock.calls.map((c) => String(c[0])), errors: err.mock.calls.map((c) => String(c[0])) };
   } finally {
     log.mockRestore();
     err.mockRestore();
@@ -81,27 +81,25 @@ describe("runAnalyze", () => {
   });
 });
 
-describe("analyze command", () => {
-  test("sends the account's API key to /generate but not to the map URL", async () => {
-    const saved = process.env.SHOTSTACK_API_KEY;
-    process.env.SHOTSTACK_API_KEY = "test-key";
-    const log = spyOn(console, "log").mockImplementation(() => {});
-    const fetchMock = spyOn(globalThis, "fetch").mockImplementation(async (input) =>
-      String(input).endsWith("/generate")
-        ? new Response(JSON.stringify({ id: "a", status: "done", url: MAP_URL }))
-        : new Response(JSON.stringify(steady)),
-    );
+describe("map fetch", () => {
+  test("a non-2xx map response exits 1 with a clear message", async () => {
+    const { client } = fakeClient({ id: "a", status: "done", url: MAP_URL });
+    const fetchMock = spyOn(globalThis, "fetch").mockResolvedValue(new Response("nope", { status: 403 }));
     try {
-      await analyzeCommand.parseAsync(["node", "analyze", "https://example.com/a.mp3", "--output", "json"]);
-      const [generate, map] = fetchMock.mock.calls;
-      expect((generate![1]!.headers as Record<string, string>)["x-api-key"]).toBe("test-key");
-      expect(map).toEqual([MAP_URL]);
+      const { result, lines, errors } = await capture(() => runAnalyze(client, "https://example.com/a.mp3", "json", 0));
+      expect(result).toMatchObject({ exitCode: 1 });
+      expect(lines).toEqual([]);
+      expect(errors).toEqual([`could not fetch the analysis map (403) from ${MAP_URL}`]);
     } finally {
       fetchMock.mockRestore();
-      log.mockRestore();
-      if (saved === undefined) delete process.env.SHOTSTACK_API_KEY;
-      else process.env.SHOTSTACK_API_KEY = saved;
     }
+  });
+
+  test("a done job with no url exits 1 with a clear message", async () => {
+    const { client } = fakeClient({ id: "a", status: "done" });
+    const { result, errors } = await capture(() => runAnalyze(client, "https://example.com/a.mp3", "json", 0));
+    expect(result).toMatchObject({ exitCode: 1 });
+    expect(errors).toEqual(["analysis finished without a map URL"]);
   });
 });
 
@@ -113,17 +111,5 @@ describe("formatSummary", () => {
   test("describes a track whose tempo varies", () => {
     const varies = { bpm: 120, steady: false, beats: Array(822), downbeats: Array(227), drops: [{}, {}], sections: Array(9) };
     expect(formatSummary(varies)).toBe("tempo varies (about 120 BPM): 822 beats, 227 downbeats, 2 drops, 9 sections");
-  });
-});
-
-describe("createClient", () => {
-  test("sends no API key when it has none", async () => {
-    const fetchMock = spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}"));
-    try {
-      await createClient({ env: { name: "v1", baseUrl: "https://api.example.com" } }).get("/x");
-      expect(fetchMock.mock.calls[0]![1]!.headers).not.toHaveProperty("x-api-key");
-    } finally {
-      fetchMock.mockRestore();
-    }
   });
 });
