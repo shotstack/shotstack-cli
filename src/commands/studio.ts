@@ -4,10 +4,13 @@ import { spawn, execSync } from "node:child_process";
 import { Command } from "commander";
 import { emit, parseOutputFormat } from "../output.ts";
 import { validateEdit, formatIssues } from "../lib/validate.ts";
+import { requireApiKey, MissingApiKeyError } from "../http/auth.ts";
+import { ApiError } from "../http/client.ts";
+import { resolveEnvName, ENV_NAMES } from "../http/env.ts";
 
 const STUDIO_URL = "https://shotstack.studio";
 const SHARE_API_URL = `${STUDIO_URL}/api/share`;
-const SHARE_TIMEOUT_MS = 3000;
+const SHARE_TIMEOUT_MS = 5000;
 const URL_WARN_THRESHOLD = 6000;
 
 export const studioCommand = new Command("studio")
@@ -18,8 +21,9 @@ export const studioCommand = new Command("studio")
   .option("--copy", "Copy the URL to the clipboard")
   .option("--no-open", "Do not try to open the URL in a browser")
   .option("--no-shorten", "Skip the share API; emit a base64url URL inline")
+  .option(`--env <name>`, `Environment whose API key makes the short link permanent: ${ENV_NAMES.join(" | ")}`)
   .option("--output <format>", "Output format: text | json", "text")
-  .action(async (file: string, options: { copy?: boolean; open: boolean; shorten: boolean; output: string }) => {
+  .action(async (file: string, options: { copy?: boolean; open: boolean; shorten: boolean; env?: string; output: string }) => {
     const format = parseOutputFormat(options.output);
 
     const path = resolve(process.cwd(), file);
@@ -33,7 +37,8 @@ export const studioCommand = new Command("studio")
       process.exit(1);
     }
 
-    const { url, shortened } = await buildStudioUrl(template, { shorten: options.shorten });
+    const apiKey = options.shorten ? shareApiKey(options.env) : undefined;
+    const { url, shortened } = await buildStudioUrl(template, { shorten: options.shorten, apiKey, env: options.shorten ? resolveEnvName(options.env) : undefined });
 
     if (!shortened && url.length > URL_WARN_THRESHOLD) {
       console.error(
@@ -57,15 +62,36 @@ interface StudioUrl {
 
 export async function buildStudioUrl(
   template: unknown,
-  options: { shorten?: boolean } = {}
+  options: { shorten?: boolean; apiKey?: string; env?: string } = {}
 ): Promise<StudioUrl> {
   const shouldShorten = options.shorten !== false;
   if (shouldShorten) {
-    const shortUrl = await tryShortenViaStudio(template);
-    if (shortUrl) return { url: shortUrl, shortened: true };
-    console.error("warning: could not reach the shotstack.studio share API; falling back to inline URL.");
+    const shared = await shareViaStudio(template, options.apiKey);
+    if ("url" in shared) {
+      if (!options.apiKey) {
+        console.error(
+          options.env === "dev"
+            ? "note: this link lasts 30 days. Dev keys can't make links permanent; use --env stage or --env v1."
+            : "note: this link lasts 30 days. Run `shotstack login` or set SHOTSTACK_API_KEY to make your links permanent."
+        );
+      }
+      return { url: shared.url, shortened: true };
+    }
+    console.error(`warning: the shotstack.studio share API failed (${shared.failed}); falling back to inline URL.`);
   }
   return { url: buildInlineUrl(template), shortened: false };
+}
+
+// Studio validates keys against the production and sandbox Edit API only, so a dev key would be refused.
+export function shareApiKey(cliEnv: string | undefined, credentialsFile?: string): string | undefined {
+  const env = resolveEnvName(cliEnv);
+  if (env === "dev") return undefined;
+  try {
+    return requireApiKey(env, credentialsFile);
+  } catch (err) {
+    if (err instanceof MissingApiKeyError) return undefined;
+    throw err;
+  }
 }
 
 export function buildInlineUrl(template: unknown): string {
@@ -73,20 +99,38 @@ export function buildInlineUrl(template: unknown): string {
   return `${STUDIO_URL}/#json=${encoded}`;
 }
 
-async function tryShortenViaStudio(template: unknown): Promise<string | null> {
+type ShareOutcome = { url: string } | { failed: string; retry: boolean };
+
+async function shareViaStudio(template: unknown, apiKey: string | undefined): Promise<ShareOutcome> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (apiKey) headers["x-api-key"] = apiKey;
+  const first = await postShare(template, headers);
+  return "retry" in first && first.retry ? postShare(template, headers) : first;
+}
+
+// A 4xx throws: the edit or the key was refused, and an inline URL would hide that.
+async function postShare(template: unknown, headers: Record<string, string>): Promise<ShareOutcome> {
+  let res: Response;
   try {
-    const res = await fetch(SHARE_API_URL, {
+    res = await fetch(SHARE_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(template),
+      // The key must never follow a redirect to another host.
+      redirect: "error",
       signal: AbortSignal.timeout(SHARE_TIMEOUT_MS),
     });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { url?: string };
-    return json.url ?? null;
-  } catch {
-    return null;
+  } catch (err) {
+    return { failed: (err as Error).message, retry: true };
   }
+  const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (res.ok && body.url) return { url: body.url };
+  if (res.status === 429 || res.status >= 500) return { failed: `HTTP ${res.status}`, retry: true };
+  if (res.status >= 400) {
+    const reason = `${body.error ?? "no reason given"} (HTTP ${res.status})`;
+    throw new ApiError(res.status, body, `The shotstack.studio share API refused the request: ${reason}`);
+  }
+  return { failed: `HTTP ${res.status} without a url`, retry: false };
 }
 
 async function copyToClipboard(text: string): Promise<void> {
