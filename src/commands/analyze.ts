@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { requireApiKey } from "../http/auth.ts";
 import { createClient, type Client } from "../http/client.ts";
 import { resolveEnv, ENV_NAMES } from "../http/env.ts";
 import { emit, type OutputFormat, parseOutputFormat } from "../output.ts";
@@ -20,7 +21,7 @@ export interface MusicMap {
 export interface Analysis {
   id: string;
   status: "queued" | "processing" | "done" | "failed";
-  result?: MusicMap;
+  url?: string;
   error?: string;
 }
 
@@ -36,8 +37,9 @@ export const analyzeCommand = new Command("analyze")
   .action(async (src: string, options: { env?: string; output: string }) => {
     await withRecording("analyze", commandArgv("analyze"), async () => {
       const format = parseOutputFormat(options.output);
-      // Analysis is free and needs no API key.
-      const client = createClient({ env: resolveEnv(options.env) });
+      // Analysis costs no credits, but /generate requires a key to identify the account.
+      const env = resolveEnv(options.env);
+      const client = createClient({ apiKey: requireApiKey(env.name), env });
       return runAnalyze(client, src, format);
     });
   });
@@ -49,17 +51,21 @@ export async function runAnalyze(
   format: OutputFormat,
   intervalMs: number = POLL_INTERVAL_MS,
 ): Promise<CommandResult> {
-  let job = await client.post<Analysis>("/analysis", { src });
+  let job = await client.post<Analysis>("/generate", {
+    asset: { type: "audio", model: "shotstack-music-analysis", src },
+  });
   while (!TERMINAL_STATES.has(job.status)) {
     if (format !== "json") console.error(`${job.status}  ${job.id}`);
     await sleep(intervalMs);
-    job = await client.get<Analysis>(`/analysis/${encodeURIComponent(job.id)}`);
+    job = await client.get<Analysis>(`/generate/${encodeURIComponent(job.id)}`);
   }
   if (job.status === "failed") {
     emit(format, job, `failed  error: ${job.error ?? "unknown error"}`);
     return { response: job, exitCode: 1 };
   }
-  emit(format, job.result, `done  ${formatSummary(job.result ?? {})}`);
+  // The map is public JSON on the CDN: fetch it without the API key.
+  const map = (await (await fetch(job.url!)).json()) as MusicMap;
+  emit(format, map, `done  ${formatSummary(map)}`);
   if (format !== "json") console.error("Print the full map with --output json.");
   return { response: job, exitCode: 0 };
 }

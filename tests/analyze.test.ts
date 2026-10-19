@@ -1,5 +1,5 @@
 import { describe, test, expect, mock, spyOn } from "bun:test";
-import { formatSummary, runAnalyze, type Analysis } from "../src/commands/analyze.ts";
+import { analyzeCommand, formatSummary, runAnalyze, type Analysis } from "../src/commands/analyze.ts";
 import { createClient, type Client } from "../src/http/client.ts";
 
 const steady = {
@@ -32,19 +32,44 @@ async function capture(run: () => Promise<unknown>) {
   }
 }
 
+const MAP_URL = "https://cdn.example.com/a.json";
+const body = { asset: { type: "audio", model: "shotstack-music-analysis", src: "https://example.com/lit.mp3" } };
+
+async function withMapFetch(run: (fetchMock: ReturnType<typeof spyOn>) => Promise<void>) {
+  const fetchMock = spyOn(globalThis, "fetch").mockImplementation(async () => new Response(JSON.stringify(steady)));
+  try {
+    await run(fetchMock);
+  } finally {
+    fetchMock.mockRestore();
+  }
+}
+
 describe("runAnalyze", () => {
-  test("submits the src, polls until done, and prints only the map as JSON", async () => {
+  test("posts the analysis model, polls until done, then prints the map fetched without a key", async () => {
     const { client, post, get } = fakeClient(
       { id: "a", status: "queued" },
       { id: "a", status: "processing" },
-      { id: "a", status: "done", result: steady },
+      { id: "a", status: "done", url: MAP_URL },
     );
-    const { result, lines } = await capture(() => runAnalyze(client, "https://example.com/lit.mp3", "json", 0));
-    expect(post).toHaveBeenCalledWith("/analysis", { src: "https://example.com/lit.mp3" });
-    expect(get).toHaveBeenCalledWith("/analysis/a");
-    expect(get).toHaveBeenCalledTimes(2);
-    expect(lines).toEqual([JSON.stringify(steady)]);
-    expect(result).toMatchObject({ exitCode: 0 });
+    await withMapFetch(async (fetchMock) => {
+      const { result, lines } = await capture(() => runAnalyze(client, "https://example.com/lit.mp3", "json", 0));
+      expect(post).toHaveBeenCalledWith("/generate", body);
+      expect(get).toHaveBeenCalledWith("/generate/a");
+      expect(get).toHaveBeenCalledTimes(2);
+      expect(fetchMock.mock.calls).toEqual([[MAP_URL]]);
+      expect(lines).toEqual([JSON.stringify(steady)]);
+      expect(result).toMatchObject({ exitCode: 0 });
+    });
+  });
+
+  test("a cached 200 done response fetches the map without polling", async () => {
+    const { client, get } = fakeClient({ id: "a", status: "done", url: MAP_URL });
+    await withMapFetch(async (fetchMock) => {
+      const { lines } = await capture(() => runAnalyze(client, "https://example.com/lit.mp3", "json", 0));
+      expect(get).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(lines).toEqual([JSON.stringify(steady)]);
+    });
   });
 
   test("exits 1 with the API's error when the track can't be read", async () => {
@@ -53,6 +78,30 @@ describe("runAnalyze", () => {
     const { result, lines } = await capture(() => runAnalyze(client, "https://example.com/a.mp3", "json", 0));
     expect(lines).toEqual([JSON.stringify(failed)]);
     expect(result).toMatchObject({ exitCode: 1 });
+  });
+});
+
+describe("analyze command", () => {
+  test("sends the account's API key to /generate but not to the map URL", async () => {
+    const saved = process.env.SHOTSTACK_API_KEY;
+    process.env.SHOTSTACK_API_KEY = "test-key";
+    const log = spyOn(console, "log").mockImplementation(() => {});
+    const fetchMock = spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+      String(input).endsWith("/generate")
+        ? new Response(JSON.stringify({ id: "a", status: "done", url: MAP_URL }))
+        : new Response(JSON.stringify(steady)),
+    );
+    try {
+      await analyzeCommand.parseAsync(["node", "analyze", "https://example.com/a.mp3", "--output", "json"]);
+      const [generate, map] = fetchMock.mock.calls;
+      expect((generate![1]!.headers as Record<string, string>)["x-api-key"]).toBe("test-key");
+      expect(map).toEqual([MAP_URL]);
+    } finally {
+      fetchMock.mockRestore();
+      log.mockRestore();
+      if (saved === undefined) delete process.env.SHOTSTACK_API_KEY;
+      else process.env.SHOTSTACK_API_KEY = saved;
+    }
   });
 });
 

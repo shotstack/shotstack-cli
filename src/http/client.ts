@@ -17,7 +17,7 @@ export class ApiError extends Error {
 }
 
 export interface ClientOptions {
-  // Absent for keyless endpoints such as /analysis.
+  // Absent for endpoints that take no key.
   apiKey?: string;
   env: ResolvedEnv;
 }
