@@ -16,8 +16,8 @@ Read [`html5.md`](html5.md) for the rules these obey. The non-negotiables:
 - **Size the clip to the content, not the canvas.** `html, body` pinned to the clip's `width`/`height`; place with `offset` (`{x:0,y:0}` is centred, `y` positive is up). Use **px**, never `vw`/`vh`/`%`.
 - **The body is transparent by default** — the clip composites over the layers below (only set an opaque background if you want one).
 - **Canvas only from the seek hook.** Draw canvas 2D inside `window.__shotstackSeek(ms)`, never in a `requestAnimationFrame` loop. WebGL is blank in the cloud render. SVG or positioned DOM is usually lighter.
-- **No network.** gsap (with its plugins), anime, d3 and lottie are preloaded; external `<script src>`, `fetch`, remote `<img>`, and remote fonts are all CSP-blocked — inline everything as `data:` URIs.
-- **Fonts:** `timeline.fonts[]` does **not** reach `html5` and remote `@font-face` is blocked. These snippets name a display font first but render in the `system-ui` fallback unless you inline the font as a `data:` `@font-face`.
+- **No network.** gsap (with its plugins), anime, d3 and lottie are preloaded; external `<script src>`, `fetch`, remote `<img>`, and remote fonts are all CSP-blocked. Inline them as `data:` URIs, or use the URL of an image or font you ingested (see [`html5.md`](html5.md)).
+- **Fonts:** `timeline.fonts[]` does **not** reach `html5` and remote `@font-face` is blocked. These snippets name a display font first but render in the `system-ui` fallback unless you load the font, from an ingested font's URL or a `data:` `@font-face`.
 - **Use unique element IDs for GSAP targets, not `:nth-child` or compound CSS selectors.** Studio preview doesn't resolve `.parent:nth-child(n) .child` patterns; `#id` works everywhere. When animating repeated elements (list rows, bars, cards), generate a unique ID per item (`id="row0"`, `id="bar0"`) rather than relying on structural selectors.
 
 Coordinates below assume a **1080×1920 vertical** canvas; adjust `offset` for other sizes.
@@ -48,7 +48,7 @@ The reference entrance: opacity, blur and a 16 px rise settle **together** off o
 }
 ```
 
-`base` (0.6 s) entrance on `power3.out`, then a `hold` (1.5 s) settle. Swap `{{title}}` via top-level `merge[]`. `Clash Display` falls back to `system-ui` unless you inline it as a `data:` `@font-face` (see Fonts above).
+`base` (0.6 s) entrance on `power3.out`, then a `hold` (1.5 s) settle. Swap `{{title}}` via top-level `merge[]`. `Clash Display` falls back to `system-ui` unless you load it, from an ingested font's URL or a `data:` `@font-face` (see Fonts above).
 
 ---
 

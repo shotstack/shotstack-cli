@@ -78,6 +78,13 @@ shotstack studio edit.json
 Remember `tracks[0]` is the **top** layer (see `shared/agent-core.md`), so the
 logo track sits above the video.
 
+## Images and fonts in an html5 page
+
+An `html5` page can use images and fonts you ingested by putting their
+`source` URLs in its `html` or `css` (`<img src>`, CSS `url()`, `@font-face`).
+The file must belong to the same account and environment as the render. Limits
+and details are in [`html5.md`](html5.md).
+
 ## Fetch a remote URL instead of uploading
 
 If the media is already at a URL but you want Shotstack to host its own copy
