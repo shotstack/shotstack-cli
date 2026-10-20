@@ -11,7 +11,7 @@ This is the **modern replacement for the deprecated `html` asset.** `html5` runs
 - Required and optional fields
 - Preloaded libraries
 - The browser harness (deterministic auto-seek)
-- Sandbox restrictions: no network; ingested images and fonts by URL, everything else inline
+- Sandbox restrictions: no network; ingested images and fonts by URL, everything else inline (incl. Lottie exports)
 - Sizing
 - 3D: what renders in preview and render
 - Worked example: animated lower-third (GSAP)
@@ -53,7 +53,7 @@ Four libraries and GSAP's plugins are always available — no `<script src=>` ta
 - **GSAP** (`window.gsap`) — primary animation library. Use timelines (`gsap.timeline()`) over loose tweens; the harness seeks timelines correctly.
 - **anime.js** (`window.anime`) — alternative animation library.
 - **D3** (`window.d3`) — for data binding, scales, and SVG/DOM construction. Pair with GSAP for the actual animation; D3's transitions work too but GSAP is more reliable under seek. `d3.randomLcg(seed)` is the seeded random source.
-- **Lottie** (`window.lottie`) — Bodymovin JSON player (SVG-renderer build; `renderer: "canvas"` is unavailable). Expressions in the file (`wiggle`, `loopOut`) don't run: a layer that carries one doesn't render. Bake expressions into keyframes before export (After Effects: *Animation → Keyframe Assistant → Convert Expression to Keyframes*).
+- **Lottie** (`window.lottie`) — Bodymovin JSON player (SVG-renderer build; `renderer: "canvas"` is unavailable). Expressions in the file (`wiggle`, `loopOut`, slider links) run in Lottie's own engine, which covers a subset of After Effects expressions. If one doesn't animate as it does in After Effects, bake it into keyframes before export (*Animation → Keyframe Assistant → Convert Expression to Keyframes*). Size, image and text rules are under *Lottie exports* below.
 
 GSAP 3.15 plugins, already registered:
 
@@ -94,7 +94,7 @@ Frames are captured by **seeking** the animation to each timestamp, not by playi
 The iframe renders under a strict Content-Security-Policy (`default-src 'none'`), in both Studio preview and cloud render. Nothing is fetched from the network at render time:
 
 - **No external `<script src=>`.** Only the bundled GSAP/anime.js/D3/Lottie run (they're inlined for you). Another library would have to be inlined into your `js` — and must be seekable.
-- **No `fetch` / `XMLHttpRequest`** (`connect-src 'none'`). Bundle any data inline — e.g. the JS array in the bar-chart example.
+- **`fetch` / `XMLHttpRequest` read `data:` URIs only** (`connect-src data:`). Bundle any data inline — e.g. the JS array in the bar-chart example.
 - **No remote images** (`img-src 'self' data: blob:`), except images you ingested (below). Otherwise embed images as `data:` URIs. A `data:image/svg+xml` background is fine.
 - **No remote fonts** (`font-src 'self' data:`), except fonts you ingested (below). See *Fonts in HTML5*.
 
@@ -144,6 +144,27 @@ FONT=$(shotstack ingest upload ./Brand.woff2 --watch --output json | tail -n1 | 
 3. **Use a system family** (`system-ui`, `Arial`, `Georgia`, …) — resolves with no load, but each machine picks its own font, so text in Studio's preview won't match the cloud render exactly. Embed a font whenever the text must match.
 
 An unresolved family silently falls back to the browser default — the render won't fail, but the text won't be your font. For a single styled line, a `rich-text` asset (which *does* use `timeline.fonts[]`; verified catalogue in `shared/agent-core.md`) is simpler than a `data:` font embed.
+
+### Lottie exports
+
+Pass the export as `animationData` with `autoplay: false`; loading it by `path` is a network fetch and fails. In Bodymovin, tick *Include in json* so images travel inside the file as `data:` URIs. A data file that expressions read (a JSON layer) must be a `data:` URI in the asset's `p`, with `e: 1`.
+
+**Size.** The whole Edit JSON must be under 390 KB, and most 1080p exports are larger. Gzip the export, put it in `js` as base64, and unpack it in the page. A 1.7 MB export packs to about 390 KB:
+
+<!-- surface:cli -->
+`gzip -9 -c data.json | base64 | tr -d '\n'` prints the base64 string.
+<!-- /surface -->
+
+```js
+(async () => {
+  const bytes = Uint8Array.from(atob("H4sI…"), (c) => c.charCodeAt(0));
+  const gunzip = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const animationData = await new Response(gunzip).json();
+  lottie.loadAnimation({ container: document.getElementById("anim"), renderer: "svg", autoplay: false, loop: false, animationData });
+})();
+```
+
+**Text.** Exported with *Glyphs* ticked, text is drawn as shapes, but only for the characters in the export: any other character in text you change later (with a merge field, say) silently disappears, so "Hi Sydney, 2026!" renders as "i Sydney". For text that changes, untick *Glyphs* and load the font under the family name the export uses (see *Fonts in HTML5*). Don't leave Bodymovin's Google Fonts or Typekit URL in the file: it can't load, and Lottie draws nothing at all for about five seconds while it waits, which blanks the opening frames.
 
 ## Sizing
 
