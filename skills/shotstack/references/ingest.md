@@ -85,6 +85,11 @@ An `html5` page can use images and fonts you ingested by putting their
 The file must belong to the same account and environment as the render. Limits
 and details are in [`html5.md`](html5.md).
 
+With `--watch`, an image upload or fetch also requests smaller WebP copies
+(`html5-512` up to `html5-4096`, only those smaller than the image) and waits
+up to 60 s for them. They're listed under `outputs.renditions`; the renderer
+picks one for the clip size, so keep using the `source` URL.
+
 ## Fetch a remote URL instead of uploading
 
 If the media is already at a URL but you want Shotstack to host its own copy

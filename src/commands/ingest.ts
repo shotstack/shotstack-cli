@@ -9,8 +9,21 @@ import { withRecording, commandArgv } from "../recorder.ts";
 
 const POLL_INTERVAL_MS = 3000;
 const SOURCE_TERMINAL_STATES = new Set(["ready", "failed", "deleted", "overwritten"]);
+const RENDITION_TERMINAL_STATES = new Set(["ready", "failed", "deleted", "overwritten"]);
+
+// The html5 renderer uses the smallest of these that covers the clip, or the source when it's missing.
+const HTML5_STEPS = [512, 1024, 2048, 4096];
+const STEP_WAIT_MS = 60_000;
+// No GIF or SVG: a WebP copy keeps only a GIF's first frame and loses an SVG's vectors.
+const STEP_IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif", ".tif", ".tiff"]);
 
 export type SourceStatus = "queued" | "importing" | "ready" | "failed" | "deleted" | "overwritten";
+
+export interface RenditionAttributes {
+  status: string;
+  url?: string;
+  transformation?: { size?: { width?: number; height?: number } };
+}
 
 export interface SourceAttributes {
   id: string;
@@ -21,6 +34,7 @@ export interface SourceAttributes {
   height?: number;
   duration?: number;
   error?: string;
+  outputs?: { renditions?: RenditionAttributes[] };
 }
 
 interface UploadResponse {
@@ -148,8 +162,49 @@ async function finishSource(client: Client, id: string, format: OutputFormat, wa
     emit(format, { id }, id);
     return { renderId: id, response: { id } };
   }
-  const final = await pollSource(client, id, format, true);
+  const final = await requestSteps(client, await pollSource(client, id, format, true), format);
   return { renderId: id, response: sourceView(final), exitCode: final.status === "failed" ? 1 : 0 };
+}
+
+export function html5Steps(source: SourceAttributes) {
+  const { status, width, height } = source;
+  if (status !== "ready" || !width || !height || !source.source) return [];
+  if (!STEP_IMAGE_EXTENSIONS.has(extname(new URL(source.source).pathname).toLowerCase())) return [];
+  // One dimension and no fit keeps the aspect ratio.
+  const edge = width >= height ? "width" : "height";
+  return HTML5_STEPS.filter((step) => step < Math.max(width, height)).map((step) => ({
+    format: "webp",
+    size: { [edge]: step },
+    filename: `html5-${step}`,
+  }));
+}
+
+export async function requestSteps(
+  client: Client,
+  source: SourceAttributes,
+  format: OutputFormat,
+  { timeoutMs = STEP_WAIT_MS, intervalMs = POLL_INTERVAL_MS } = {},
+): Promise<SourceAttributes> {
+  const steps = html5Steps(source);
+  if (!steps.length) return source;
+  const path = `/sources/${encodeURIComponent(source.id)}`;
+  try {
+    await client.post(`${path}/renditions`, { outputs: { renditions: steps } });
+  } catch (err) {
+    // The source renders without its steps, so the upload still succeeds.
+    console.error(`Could not request html5 size steps: ${err instanceof Error ? err.message : String(err)}`);
+    return source;
+  }
+  const deadline = Date.now() + timeoutMs;
+  while (true) {
+    const attributes = (await client.get<SourceResponse>(path)).data.attributes;
+    emit(format, sourceView(attributes), formatHuman(attributes));
+    const renditions = attributes.outputs?.renditions ?? [];
+    const pending =
+      renditions.length < steps.length || renditions.some((r) => !RENDITION_TERMINAL_STATES.has(r.status));
+    if (!pending || Date.now() >= deadline) return attributes;
+    await sleep(intervalMs);
+  }
 }
 
 export async function pollSource(
@@ -231,6 +286,8 @@ function sourceView(a: SourceAttributes): SourceAttributes {
   if (a.height) view.height = a.height;
   if (a.duration) view.duration = a.duration;
   if (a.error) view.error = a.error;
+  const renditions = a.outputs?.renditions;
+  if (renditions?.length) view.outputs = { renditions: renditions.map(({ status, url }) => ({ status, url })) };
   return view;
 }
 
@@ -238,7 +295,14 @@ function formatHuman(a: SourceAttributes): string {
   const parts: string[] = [a.status];
   if (a.source) parts.push(a.source);
   if (a.error) parts.push(`error: ${a.error}`);
-  return parts.join("  ");
+  return parts.join("  ") + (a.outputs?.renditions ?? []).map(renditionLine).join("");
+}
+
+// Ingest gives a rendition its URL only once it's ready, so until then it goes by its size.
+function renditionLine(r: RenditionAttributes): string {
+  const size = r.transformation?.size;
+  const label = r.url ?? (size ? `${size.width ?? size.height}px` : "");
+  return `\n  ${r.status}  ${label}`.trimEnd();
 }
 
 function sleep(ms: number): Promise<void> {
