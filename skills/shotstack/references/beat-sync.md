@@ -18,8 +18,10 @@ Host a local file with `shotstack ingest upload <file> --watch`. Generate a trac
 
 Analysis is free, takes 15–30 s and reads the first 10 minutes of the track.
 
-It needs an API key (`shotstack login`). The `src` must be a direct, public link to an audio or video file: share pages and redirects are refused.
+The `src` must be a direct, public link to an audio or video file: share pages and redirects are refused.
 <!-- surface:cli -->
+It needs an API key (`shotstack login`).
+
 ```sh
 shotstack analyze https://shotstack-assets.s3.amazonaws.com/music/unminus/lit.mp3 --output json > map.json
 ```
