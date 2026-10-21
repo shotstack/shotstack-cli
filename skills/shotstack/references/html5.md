@@ -119,6 +119,9 @@ FONT=$(shotstack ingest upload ./Brand.woff2 --watch --output json | tail -n1 | 
 - **Same account and environment only.** A file ingested on `stage` works in `stage` renders, not in `v1`, and another account's files are refused. Every other remote URL is still blocked.
 - **10 MiB per file, 25 MiB per page.** A file counts once for every place the page references it, so reference a large image once (a CSS class, say) and reuse the class.
 - **Size images to the clip.** A photo much larger than the clip makes a heavier page and a slower capture. If the source has a WebP rendition named `html5-512`, `html5-1024`, `html5-2048` or `html5-4096`, the renderer uses the smallest one that covers the clip's longest edge; otherwise it uses the original.
+<!-- surface:cli -->
+- `shotstack ingest upload --watch` and `ingest fetch --watch` request those renditions for an image and wait up to 60 s for them, so the `source` URL is all the page needs.
+<!-- /surface -->
 - **A file that can't be used fails the render**, for example one that's missing, too large, or not an image or font.
 - **Studio's preview doesn't load ingested files yet**, so they show as missing there. The render is unaffected.
 <!-- surface:cli -->
