@@ -11,7 +11,7 @@ This is the **modern replacement for the deprecated `html` asset.** `html5` runs
 - Required and optional fields
 - Preloaded libraries
 - The browser harness (deterministic auto-seek)
-- Sandbox restrictions: no network, inline everything (incl. fonts)
+- Sandbox restrictions: no network; ingested images and fonts by URL, everything else inline
 - Sizing
 - 3D: what renders in preview and render
 - Worked example: animated lower-third (GSAP)
@@ -89,25 +89,56 @@ Frames are captured by **seeking** the animation to each timestamp, not by playi
 
 **Duration comes from the clip's `length`** — there's no animation-duration auto-detection. Size your animation to run within (or fill) the clip's `length`.
 
-## Sandbox restrictions: no network, inline everything
+## Sandbox restrictions: no network, ingested files by URL
 
 The iframe renders under a strict Content-Security-Policy (`default-src 'none'`), in both Studio preview and cloud render. Nothing is fetched from the network at render time:
 
 - **No external `<script src=>`.** Only the bundled GSAP/anime.js/D3/Lottie run (they're inlined for you). Another library would have to be inlined into your `js` — and must be seekable.
 - **No `fetch` / `XMLHttpRequest`** (`connect-src 'none'`). Bundle any data inline — e.g. the JS array in the bar-chart example.
-- **No remote images** (`img-src 'self' data: blob:`). Embed images as `data:` URIs. A `data:image/svg+xml` background is fine.
-- **No remote fonts** (`font-src 'self' data:`) — see below.
+- **No remote images** (`img-src 'self' data: blob:`), except images you ingested (below). Otherwise embed images as `data:` URIs. A `data:image/svg+xml` background is fine.
+- **No remote fonts** (`font-src 'self' data:`), except fonts you ingested (below). See *Fonts in HTML5*.
+
+### Images and fonts you ingested
+
+Reference an ingested image or font by its `source` URL, straight from `html` or `css`: an `<img src>`, a CSS `url()` or an `@font-face` `src`. Before capture the renderer fetches each file and inlines it, so the page itself still makes no request.
+
+<!-- surface:cli -->
+Upload with `shotstack ingest upload`, or host a copy of a URL with `shotstack ingest fetch`:
+
+```sh
+PHOTO=$(shotstack ingest upload ./hero.jpg --watch --output json | tail -n1 | jq -r .source)
+FONT=$(shotstack ingest upload ./Brand.woff2 --watch --output json | tail -n1 | jq -r .source)
+```
+<!-- /surface -->
+
+```css
+@font-face { font-family: 'Brand'; src: url(<FONT>) format('woff2'); }
+.hero { background: url(<PHOTO>) center / cover; }
+```
+
+- **Same account and environment only.** A file ingested on `stage` works in `stage` renders, not in `v1`, and another account's files are refused. Every other remote URL is still blocked.
+- **10 MiB per file, 25 MiB per page.** A file counts once for every place the page references it, so reference a large image once (a CSS class, say) and reuse the class.
+- **Size images to the clip.** A photo much larger than the clip makes a heavier page and a slower capture. If the source has a WebP rendition named `html5-512`, `html5-1024`, `html5-2048` or `html5-4096`, the renderer uses the smallest one that covers the clip's longest edge; otherwise it uses the original.
+- **A file that can't be used fails the render**, for example one that's missing, too large, or not an image or font.
+- **Studio's preview doesn't load ingested files yet**, so they show as missing there. The render is unaffected.
+<!-- surface:cli -->
+- Until Studio supports them, check the page with `shotstack render <file> --env stage --watch`.
+<!-- /surface -->
 
 ### Fonts in HTML5
 
-`timeline.fonts[]` does **not** apply to `html5` assets (it loads fonts for `rich-text` / `rich-caption` only), and a remote `@font-face` URL (Google Fonts, etc.) is CSP-blocked. Two ways to get a custom font into an `html5` clip:
+`timeline.fonts[]` does **not** apply to `html5` assets (it loads fonts for `rich-text` / `rich-caption` only), and a remote `@font-face` URL (Google Fonts, etc.) is CSP-blocked. Three ways to get a custom font into an `html5` clip:
 
-1. **Inline it as a `data:` `@font-face`** — base64-encode the `.woff2` / `.ttf`:
+1. **Ingest it and use its URL** (see *Images and fonts you ingested*).
+   <!-- surface:cli -->
+   For a Google Font, `shotstack ingest fetch` the font file's `fonts.gstatic.com` URL and use the hosted copy.
+   <!-- /surface -->
+2. **Inline it as a `data:` `@font-face`** — base64-encode the `.woff2` / `.ttf`:
    ```css
    @font-face { font-family: 'Brand'; src: url('data:font/woff2;base64,<…>') format('woff2'); }
    .title { font-family: 'Brand', sans-serif; }
    ```
-2. **Use a system family** (`system-ui`, `Arial`, `Georgia`, …) — resolves with no load, but each machine picks its own font, so text in Studio's preview won't match the cloud render exactly. Embed a font whenever the text must match.
+3. **Use a system family** (`system-ui`, `Arial`, `Georgia`, …) — resolves with no load, but each machine picks its own font, so text in Studio's preview won't match the cloud render exactly. Embed a font whenever the text must match.
 
 An unresolved family silently falls back to the browser default — the render won't fail, but the text won't be your font. For a single styled line, a `rich-text` asset (which *does* use `timeline.fonts[]`; verified catalogue in `shared/agent-core.md`) is simpler than a `data:` font embed.
 

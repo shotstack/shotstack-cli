@@ -232,7 +232,7 @@ Use only the **current** asset types; the deprecated ones still parse but should
 | `audio` | Audio clip placed at a specific time on the timeline, or AI-generated speech or music from a `prompt`. |
 | `rich-text` | Styled text overlay with full typography control. **Use this instead of `text`/`html`/`title`.** |
 | `svg` | Vector graphics from raw SVG markup: `src` starts with `<svg`, never a URL or `data:` URI (the render fails). See **`svg` assets** below. |
-| `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap with its plugins (SplitText, DrawSVG, MorphSVG, MotionPath, Flip and more), d3, anime and lottie. See `references/html5.md`. **Never use the deprecated `html` asset.** |
+| `html5` | Self-contained HTML/CSS/JS page rendered in an iframe (motion graphics, charts, animated overlays). Preloads gsap with its plugins (SplitText, DrawSVG, MorphSVG, MotionPath, Flip and more), d3, anime and lottie. Images and fonts: the URL of a file you ingested, or a `data:` URI; other remote URLs are blocked. See `references/html5.md`. **Never use the deprecated `html` asset.** |
 | `rich-caption` | Word-level animated captions sourced from audio, video, or subtitle files. See `references/caption.md`. |
 | `luma` | Luma matte for masking effects. |
 

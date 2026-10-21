@@ -90,6 +90,8 @@ SRC=$(shotstack ingest upload ./clip.mp4 --watch --output json | tail -n1 | jq -
 # …then reference "$SRC" as an asset.src in your Edit JSON and run `shotstack render`.
 ```
 
+This includes images and fonts for an `html5` page: put the URL in its `html` or `css`.
+
 The bare command (no `--watch`) returns only an `id`; the hosted `source` URL does not exist until ingestion is `ready`. Always `--watch` (or follow up with `shotstack ingest status <id> --watch`) when you need the URL.
 
 Other ingest subcommands: `ingest fetch <url>` (host a copy of a remote URL), `ingest status <id>`, `ingest list`, `ingest delete <id>`. **Read [`references/ingest.md`](references/ingest.md) for the full upload→render workflow, status values, and supported file types.**

@@ -102,7 +102,7 @@ What you can build inside one `html5` clip, listed by the effect you'd reach for
 - **WebGL, shaders, 3D models:** use CSS 2.5D and SVG filters.
 - **Video or audio inside the clip:** put footage and sound on other timeline tracks; `html5` is the graphics layer.
 - **Scroll, drag or pointer-driven animation:** capture is time-driven only.
-- **Remote fonts, images, scripts:** inline them as `data:` URIs.
+- **Remote scripts, and images or fonts you haven't ingested:** inline them as `data:` URIs. Images and fonts you ingested work by URL; see [`html5.md`](html5.md).
 
 ## Cost
 
