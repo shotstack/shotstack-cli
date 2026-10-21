@@ -168,8 +168,9 @@ Pick `output.resolution` (preset) OR `output.size.width`+`output.size.height` (c
 | `sd` | 1024×576 @ 25 |
 | `hd` | 1280×720 @ 25 (default) |
 | `1080` | 1920×1080 @ 25 |
+| `4k` | 3840×2160 @ 25 (Pro, Scale and Volume plans) |
 
-Custom sizes must be divisible by 2.
+Custom sizes must be divisible by 2, up to 3840px on each side (1920px for `gif`). Video can be up to 3840×2160 pixels in any shape, for example 2160×3840 for vertical 4K; larger sizes are rejected. Video above 1920×1080 pixels needs a plan that includes 4K.
 
 ## Merge fields
 
