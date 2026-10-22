@@ -100,7 +100,7 @@ The iframe renders under a strict Content-Security-Policy (`default-src 'none'`)
 
 ### Images and fonts you ingested
 
-Reference an ingested image or font by its `source` URL, straight from `html` or `css`: an `<img src>`, a CSS `url()` or an `@font-face` `src`. Before capture the renderer fetches each file and inlines it, so the page itself still makes no request.
+Reference an ingested image or font by its `source` URL, straight from `html` or `css`: an `<img src>`, a CSS `url()` or an `@font-face` `src`. Before capture the renderer fetches each file and inlines it, so the page itself still makes no request. Studio's preview does the same.
 
 <!-- surface:cli -->
 Upload with `shotstack ingest upload`, or host a copy of a URL with `shotstack ingest fetch`:
@@ -123,10 +123,6 @@ FONT=$(shotstack ingest upload ./Brand.woff2 --watch --output json | tail -n1 | 
 - `shotstack ingest upload --watch` and `ingest fetch --watch` request those renditions for an image and wait up to 60 s for them, so the `source` URL is all the page needs.
 <!-- /surface -->
 - **A file that can't be used fails the render**, for example one that's missing, too large, or not an image or font.
-- **Studio's preview doesn't load ingested files yet**, so they show as missing there. The render is unaffected.
-<!-- surface:cli -->
-- Until Studio supports them, check the page with `shotstack render <file> --env stage --watch`.
-<!-- /surface -->
 
 ### Fonts in HTML5
 
