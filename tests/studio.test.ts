@@ -151,6 +151,15 @@ describe("share API rules", () => {
     expect(String(stderr.mock.calls[0]![0])).toContain("lasts 30 days");
   });
 
+  test("says the link was made by the CLI, with or without a key", async () => {
+    for (const options of [{ apiKey: "key" }, undefined]) {
+      const fetchMock = shareSequence(shared());
+      await buildStudioUrl(sample, options);
+      const headers = fetchMock.mock.calls[0]![1]!.headers as Record<string, string>;
+      expect(headers["x-share-source"]).toBe("cli");
+    }
+  });
+
   test("for dev, the note names the cause instead of asking for a key", async () => {
     shareSequence(shared());
     await buildStudioUrl(sample, { env: "dev" });
