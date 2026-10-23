@@ -102,7 +102,7 @@ export function buildInlineUrl(template: unknown): string {
 type ShareOutcome = { url: string } | { failed: string; retry: boolean };
 
 async function shareViaStudio(template: unknown, apiKey: string | undefined): Promise<ShareOutcome> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", "x-share-source": "cli" };
   if (apiKey) headers["x-api-key"] = apiKey;
   const first = await postShare(template, headers);
   return "retry" in first && first.retry ? postShare(template, headers) : first;
