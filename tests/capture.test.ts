@@ -65,6 +65,13 @@ test("a profile another Chrome holds falls back to a temporary one, removed afte
   expect(held.kill).toHaveBeenCalled();
 });
 
+test("a page that can't load fails at once instead of waiting out the deadline", async () => {
+  const chrome = fakeChrome(() => ({}), { navigate: { frameId: "f1", errorText: "net::ERR_INTERNET_DISCONNECTED" } });
+  expect(captureSheets({ src: "https://x/v.mp4", times: [1] }, options(() => chrome))).rejects.toThrow(
+    "Couldn't load https://shotstack.studio/capture.html: net::ERR_INTERNET_DISCONNECTED",
+  );
+});
+
 test("a Chrome that can't start reports what it printed", async () => {
   const held = fakeChrome(() => ({}), { closed: true });
   const broken = fakeChrome(() => ({}), { closed: true, output: "Running as root without --no-sandbox is not supported." });

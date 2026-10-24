@@ -9,10 +9,13 @@ import { validateCommand } from "./commands/validate.ts";
 import { modelsCommand } from "./commands/models.ts";
 import { generateCommand } from "./commands/generate.ts";
 import { analyzeCommand } from "./commands/analyze.ts";
+import { inspectCommand } from "./commands/inspect.ts";
 import { loginCommand, logoutCommand } from "./commands/auth.ts";
 import { ApiError } from "./http/client.ts";
 import { MissingApiKeyError } from "./http/auth.ts";
 import { InvalidEnvError } from "./http/env.ts";
+import { ChromeNotFoundError } from "./lib/chrome.ts";
+import { ChromeLaunchError, PageError } from "./lib/capture.ts";
 import { version } from "./version.ts";
 
 const program = new Command()
@@ -28,6 +31,7 @@ const program = new Command()
   .addCommand(modelsCommand)
   .addCommand(generateCommand)
   .addCommand(analyzeCommand)
+  .addCommand(inspectCommand)
   .addCommand(loginCommand)
   .addCommand(logoutCommand)
   .addCommand(feedbackCommand);
@@ -39,7 +43,7 @@ try {
 }
 
 function handleError(err: unknown): number {
-  if (err instanceof MissingApiKeyError || err instanceof InvalidEnvError) {
+  if (err instanceof MissingApiKeyError || err instanceof InvalidEnvError || err instanceof ChromeNotFoundError || err instanceof PageError || err instanceof ChromeLaunchError) {
     console.error(err.message);
     return 1;
   }

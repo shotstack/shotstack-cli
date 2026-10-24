@@ -19,6 +19,11 @@ export interface CaptureOptions {
   launch?: (profileDir: string) => Chrome;
 }
 
+/** An error the capture page threw, such as a time before the edit starts. */
+export class PageError extends Error {
+  override name = "PageError";
+}
+
 interface Evaluated {
   result?: { value?: unknown };
   exceptionDetails?: { text?: string; exception?: { description?: string } };
@@ -28,7 +33,7 @@ async function evaluate(cdp: Cdp, sessionId: string, expression: string): Promis
   const { result, exceptionDetails } = await cdp.send<Evaluated>("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true }, sessionId);
   if (exceptionDetails) {
     const description = exceptionDetails.exception?.description ?? exceptionDetails.text ?? "The capture page threw an error.";
-    throw new Error(description.split("\n")[0]!.replace(/^Error: /, ""));
+    throw new PageError(description.split("\n")[0]!.replace(/^Error: /, ""));
   }
   return result?.value;
 }
@@ -54,7 +59,8 @@ export async function captureSheets(input: CaptureInput, { pageUrl, timeoutMs, p
     }
     const { cdp } = chrome;
     const { sessionId } = await cdp.send<{ sessionId: string }>("Target.attachToTarget", { targetId: target.targetId, flatten: true });
-    await cdp.send("Page.navigate", { url: pageUrl }, sessionId);
+    const { errorText } = await cdp.send<{ errorText?: string }>("Page.navigate", { url: pageUrl }, sessionId);
+    if (errorText) throw new PageError(`Couldn't load ${pageUrl}: ${errorText}`);
     while ((await evaluate(cdp, sessionId, "window.captureReady === true")) !== true) await sleep(50);
     return (await evaluate(cdp, sessionId, `capture(${JSON.stringify(input)})`)) as CaptureResult;
   };
