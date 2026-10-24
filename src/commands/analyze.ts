@@ -13,7 +13,7 @@ export interface MusicMap {
   steady?: boolean;
   bars?: { count?: number };
   beats?: unknown[];
-  downbeats?: unknown[];
+  downbeats?: number[];
   drops?: unknown[];
   sections?: unknown[];
 }

@@ -2,7 +2,7 @@ import { test, expect, mock, spyOn } from "bun:test";
 import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseTimes, resolveInput, runInspect, sheetPaths } from "../src/commands/inspect.ts";
+import { barTimes, collectTimes, parseTimes, resolveInput, runInspect, sheetPaths } from "../src/commands/inspect.ts";
 import type { CaptureResult } from "../src/lib/capture.ts";
 
 const EDIT = {
@@ -132,4 +132,33 @@ test("a path that isn't there is still read as a file, so a typo never reaches t
   });
   expect(resolveInput("edit.jsn", deps)).rejects.toThrow("ENOENT");
   expect(deps.getRender).not.toHaveBeenCalled();
+});
+
+test("a steady map puts a time on every bar line, to the millisecond", () => {
+  expect(barTimes({ steady: true, origin: 0.062, bar: 1.9998, bars: { count: 3 } })).toEqual([0.062, 2.062, 4.062]);
+});
+
+test("an unsteady map uses its downbeats", () => {
+  expect(barTimes({ steady: false, downbeats: [0.5, 2.4] })).toEqual([0.5, 2.4]);
+});
+
+test("a map with neither a grid nor downbeats is an error", () => {
+  expect(() => barTimes({ bpm: 120 })).toThrow("The map has no bar grid or downbeats.");
+});
+
+test("--at and --bars together are joined, sorted and de-duplicated", () => {
+  expect(collectTimes([3, 1], { steady: false, downbeats: [1, 2] })).toEqual([1, 2, 3]);
+  expect(collectTimes([0.5], undefined)).toEqual([0.5]);
+});
+
+test("neither --at nor --bars is an error", () => {
+  expect(() => collectTimes(undefined, undefined)).toThrow("Give --at, --bars, or both.");
+});
+
+test("--grid with more than one time exits 1 without starting Chrome", async () => {
+  const capture = mock(async () => ({ sheets: [], skipped: [] }));
+  const { result, errors } = await quietly(() => runInspect({ edit: EDIT, times: [1, 2], grid: true }, { out: "inspect.jpg", format: "text", capture }));
+  expect(result.exitCode).toBe(1);
+  expect(errors).toContain("--grid takes one --at time.");
+  expect(capture).not.toHaveBeenCalled();
 });

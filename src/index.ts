@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, InvalidArgumentError } from "commander";
 import { renderCommand } from "./commands/render.ts";
 import { statusCommand } from "./commands/status.ts";
 import { feedbackCommand } from "./commands/feedback.ts";
@@ -43,7 +43,7 @@ try {
 }
 
 function handleError(err: unknown): number {
-  if (err instanceof MissingApiKeyError || err instanceof InvalidEnvError || err instanceof ChromeNotFoundError || err instanceof PageError || err instanceof ChromeLaunchError || err instanceof RenderNotReadyError) {
+  if (err instanceof MissingApiKeyError || err instanceof InvalidEnvError || err instanceof ChromeNotFoundError || err instanceof PageError || err instanceof ChromeLaunchError || err instanceof RenderNotReadyError || err instanceof InvalidArgumentError) {
     console.error(err.message);
     return 1;
   }

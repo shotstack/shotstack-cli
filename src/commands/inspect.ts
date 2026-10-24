@@ -10,6 +10,7 @@ import { captureSheets, type CaptureInput, type CaptureResult } from "../lib/cap
 import { formatIssues, validateEdit } from "../lib/validate.ts";
 import { type OutputFormat, parseOutputFormat } from "../output.ts";
 import { withRecording, commandArgv, type CommandResult } from "../recorder.ts";
+import type { MusicMap } from "./analyze.ts";
 import type { StatusResponse } from "./status.ts";
 
 const PAGE_URL = "https://shotstack.studio/capture.html";
@@ -18,13 +19,17 @@ const TIMEOUT_MS = 60_000;
 export const inspectCommand = new Command("inspect")
   .description("Draw an edit's frames at given times into a contact sheet, in headless Chrome, without rendering")
   .argument("<edit>", "Path to an Edit JSON file, a render ID, or the URL of a video")
-  .requiredOption("--at <seconds>", "Times to capture, separated by commas, e.g. 0.5,8.05", parseTimes)
+  .option("--at <seconds>", "Times to capture, separated by commas, e.g. 0.5,8.05", parseTimes)
+  .option("--bars <map.json>", "A music map from `shotstack analyze --output json`: adds a time at every bar line")
+  .option("--grid", "Overlay a grid labelled in output pixels on a single --at time, for placing overlays")
   .option("--out <path>", "Where to write the sheet; past six times, sheets are numbered inspect-1.jpg, inspect-2.jpg, …", "inspect.jpg")
   .option(`--env <name>`, `Environment a render ID belongs to: ${ENV_NAMES.join(" | ")}`)
   .option("--output <format>", "Output format: text | json", "text")
-  .action(async (arg: string, options: { at: number[]; out: string; env?: string; output: string }) => {
+  .action(async (arg: string, options: { at?: number[]; bars?: string; grid?: boolean; out: string; env?: string; output: string }) => {
     await withRecording("inspect", commandArgv("inspect"), async () => {
       const format = parseOutputFormat(options.output);
+      const map = options.bars ? (JSON.parse(await readFile(resolve(process.cwd(), options.bars), "utf8")) as MusicMap) : undefined;
+      const times = collectTimes(options.at, map);
       const source = await resolveInput(arg, {
         exists: (path) => existsSync(resolve(process.cwd(), path)),
         readEdit: async (path) => JSON.parse(await readFile(resolve(process.cwd(), path), "utf8")) as unknown,
@@ -35,7 +40,7 @@ export const inspectCommand = new Command("inspect")
           return (await client.get<StatusResponse>(`/render/${encodeURIComponent(id)}`)).response;
         },
       });
-      return runInspect({ ...source, times: options.at }, { out: options.out, format, capture });
+      return runInspect({ ...source, times, grid: options.grid }, { out: options.out, format, capture });
     });
   });
 
@@ -77,6 +82,20 @@ export function parseTimes(value: string): number[] {
   return times;
 }
 
+export function barTimes(map: MusicMap): number[] {
+  const { steady, origin, bar, bars, downbeats } = map;
+  if (steady && origin !== undefined && bar !== undefined && bars?.count) {
+    return Array.from({ length: bars.count }, (_, n) => Math.round((origin + n * bar) * 1000) / 1000);
+  }
+  if (downbeats?.length) return downbeats;
+  throw new InvalidArgumentError("The map has no bar grid or downbeats.");
+}
+
+export function collectTimes(at: number[] | undefined, map: MusicMap | undefined): number[] {
+  if (!at && !map) throw new InvalidArgumentError("Give --at, --bars, or both.");
+  return [...new Set([...(at ?? []), ...(map ? barTimes(map) : [])])].sort((a, b) => a - b);
+}
+
 export function sheetPaths(out: string, count: number): string[] {
   if (count === 1) return [out];
   const { dir, name, ext } = parse(out);
@@ -87,6 +106,10 @@ export async function runInspect(
   input: CaptureInput,
   { out, format, capture }: { out: string; format: OutputFormat; capture: (input: CaptureInput) => Promise<CaptureResult> },
 ): Promise<CommandResult> {
+  if (input.grid && input.times.length !== 1) {
+    console.error("--grid takes one --at time.");
+    return { exitCode: 1 };
+  }
   if ("edit" in input) {
     const { ok, issues } = validateEdit(input.edit);
     // The page loads assets from their URLs, so a local path fails there just as it does in a render.
