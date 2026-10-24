@@ -9,7 +9,7 @@ import { validateCommand } from "./commands/validate.ts";
 import { modelsCommand } from "./commands/models.ts";
 import { generateCommand } from "./commands/generate.ts";
 import { analyzeCommand } from "./commands/analyze.ts";
-import { inspectCommand } from "./commands/inspect.ts";
+import { inspectCommand, RenderNotReadyError } from "./commands/inspect.ts";
 import { loginCommand, logoutCommand } from "./commands/auth.ts";
 import { ApiError } from "./http/client.ts";
 import { MissingApiKeyError } from "./http/auth.ts";
@@ -43,7 +43,7 @@ try {
 }
 
 function handleError(err: unknown): number {
-  if (err instanceof MissingApiKeyError || err instanceof InvalidEnvError || err instanceof ChromeNotFoundError || err instanceof PageError || err instanceof ChromeLaunchError) {
+  if (err instanceof MissingApiKeyError || err instanceof InvalidEnvError || err instanceof ChromeNotFoundError || err instanceof PageError || err instanceof ChromeLaunchError || err instanceof RenderNotReadyError) {
     console.error(err.message);
     return 1;
   }

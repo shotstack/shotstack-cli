@@ -2,7 +2,7 @@ import { test, expect, mock, spyOn } from "bun:test";
 import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseTimes, runInspect, sheetPaths } from "../src/commands/inspect.ts";
+import { parseTimes, resolveInput, runInspect, sheetPaths } from "../src/commands/inspect.ts";
 import type { CaptureResult } from "../src/lib/capture.ts";
 
 const EDIT = {
@@ -84,4 +84,52 @@ test("every time past the end writes nothing and exits 1", async () => {
   const capture = mock(async () => ({ sheets: [], skipped: [40] }));
   const { result } = await quietly(() => runInspect({ edit: EDIT, times: [40] }, { out: "inspect.jpg", format: "text", capture }));
   expect(result.exitCode).toBe(1);
+});
+
+const RENDER_ID = "d2b46ed6-998a-4d6b-9d91-b8cf0193a655";
+
+function inputDeps({ files = {} as Record<string, unknown>, render = { status: "done", url: "https://cdn.example.com/r.mp4" } as { status: string; url?: string } } = {}) {
+  return {
+    exists: (path: string) => path in files,
+    readEdit: mock(async (path: string) => files[path]),
+    getRender: mock(async () => render),
+  };
+}
+
+test("a URL is inspected as a video, with no file read or API call", async () => {
+  const deps = inputDeps();
+  expect(await resolveInput("https://cdn.example.com/x.mp4", deps)).toEqual({ src: "https://cdn.example.com/x.mp4" });
+  expect(deps.readEdit).not.toHaveBeenCalled();
+  expect(deps.getRender).not.toHaveBeenCalled();
+});
+
+test("a path to a file is read as an edit", async () => {
+  const deps = inputDeps({ files: { "edit.json": EDIT } });
+  expect(await resolveInput("edit.json", deps)).toEqual({ edit: EDIT });
+  expect(deps.getRender).not.toHaveBeenCalled();
+});
+
+test("a render ID is inspected as its video once done", async () => {
+  const deps = inputDeps();
+  expect(await resolveInput("d2b46ed6-998a-4d6b-9d91-b8cf0193a655", deps)).toEqual({ src: "https://cdn.example.com/r.mp4" });
+  expect(deps.getRender).toHaveBeenCalledWith("d2b46ed6-998a-4d6b-9d91-b8cf0193a655");
+});
+
+test("a render that isn't done yet says so", async () => {
+  const deps = inputDeps({ render: { status: "rendering" } });
+  expect(resolveInput(RENDER_ID, deps)).rejects.toThrow(`Render ${RENDER_ID} is rendering. Inspect it once it's done.`);
+});
+
+test("a failed render says there's nothing to inspect", async () => {
+  const deps = inputDeps({ render: { status: "failed" } });
+  expect(resolveInput(RENDER_ID, deps)).rejects.toThrow(`Render ${RENDER_ID} failed, so there's nothing to inspect.`);
+});
+
+test("a path that isn't there is still read as a file, so a typo never reaches the API", async () => {
+  const deps = inputDeps();
+  deps.readEdit.mockImplementation(async () => {
+    throw Object.assign(new Error("ENOENT: no such file or directory, open 'edit.jsn'"), { code: "ENOENT" });
+  });
+  expect(resolveInput("edit.jsn", deps)).rejects.toThrow("ENOENT");
+  expect(deps.getRender).not.toHaveBeenCalled();
 });

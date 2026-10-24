@@ -1,28 +1,64 @@
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, parse, resolve } from "node:path";
 import { Command, InvalidArgumentError } from "commander";
+import { requireApiKey } from "../http/auth.ts";
+import { createClient } from "../http/client.ts";
+import { resolveEnv, ENV_NAMES } from "../http/env.ts";
 import { captureSheets, type CaptureInput, type CaptureResult } from "../lib/capture.ts";
 import { formatIssues, validateEdit } from "../lib/validate.ts";
 import { type OutputFormat, parseOutputFormat } from "../output.ts";
 import { withRecording, commandArgv, type CommandResult } from "../recorder.ts";
+import type { StatusResponse } from "./status.ts";
 
 const PAGE_URL = "https://shotstack.studio/capture.html";
 const TIMEOUT_MS = 60_000;
 
 export const inspectCommand = new Command("inspect")
   .description("Draw an edit's frames at given times into a contact sheet, in headless Chrome, without rendering")
-  .argument("<edit>", "Path to a Shotstack Edit JSON file")
+  .argument("<edit>", "Path to an Edit JSON file, a render ID, or the URL of a video")
   .requiredOption("--at <seconds>", "Times to capture, separated by commas, e.g. 0.5,8.05", parseTimes)
   .option("--out <path>", "Where to write the sheet; past six times, sheets are numbered inspect-1.jpg, inspect-2.jpg, …", "inspect.jpg")
+  .option(`--env <name>`, `Environment a render ID belongs to: ${ENV_NAMES.join(" | ")}`)
   .option("--output <format>", "Output format: text | json", "text")
-  .action(async (file: string, options: { at: number[]; out: string; output: string }) => {
+  .action(async (arg: string, options: { at: number[]; out: string; env?: string; output: string }) => {
     await withRecording("inspect", commandArgv("inspect"), async () => {
       const format = parseOutputFormat(options.output);
-      const edit = JSON.parse(await readFile(resolve(process.cwd(), file), "utf8")) as unknown;
-      return runInspect({ edit, times: options.at }, { out: options.out, format, capture });
+      const source = await resolveInput(arg, {
+        exists: (path) => existsSync(resolve(process.cwd(), path)),
+        readEdit: async (path) => JSON.parse(await readFile(resolve(process.cwd(), path), "utf8")) as unknown,
+        getRender: async (id) => {
+          // Only a render ID needs a key: edits and URLs are drawn locally.
+          const env = resolveEnv(options.env);
+          const client = createClient({ apiKey: requireApiKey(env.name), env });
+          return (await client.get<StatusResponse>(`/render/${encodeURIComponent(id)}`)).response;
+        },
+      });
+      return runInspect({ ...source, times: options.at }, { out: options.out, format, capture });
     });
   });
+
+export class RenderNotReadyError extends Error {
+  override name = "RenderNotReadyError";
+}
+
+type Source = { edit: unknown } | { src: string };
+
+const RENDER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function resolveInput(
+  arg: string,
+  deps: { exists(path: string): boolean; readEdit(path: string): Promise<unknown>; getRender(id: string): Promise<{ status: string; url?: string }> },
+): Promise<Source> {
+  if (/^https?:\/\//i.test(arg)) return { src: arg };
+  // Only a UUID is taken for a render ID, so a mistyped path fails as a missing file.
+  if (deps.exists(arg) || !RENDER_ID.test(arg)) return { edit: await deps.readEdit(arg) };
+  const render = await deps.getRender(arg);
+  if (render.status === "failed") throw new RenderNotReadyError(`Render ${arg} failed, so there's nothing to inspect.`);
+  if (render.status !== "done" || !render.url) throw new RenderNotReadyError(`Render ${arg} is ${render.status}. Inspect it once it's done.`);
+  return { src: render.url };
+}
 
 function capture(input: CaptureInput): Promise<CaptureResult> {
   return captureSheets(input, {
