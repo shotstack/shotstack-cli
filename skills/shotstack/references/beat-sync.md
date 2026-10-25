@@ -76,5 +76,5 @@ Put the track on its own track as an `audio` asset at `start: 0` with `length: "
 Before calling it done, look at a few cuts and the first drop at their bar times: the new shot should be on screen at the bar line, not a frame or two after it.
 
 <!-- surface:cli -->
-Preview with `shotstack studio`, or render on stage and pull a frame at a bar time with `ffmpeg -ss <time> -i out.mp4 -frames:v 1 bar.png`.
+`shotstack inspect edit.json --bars map.json` draws a frame at every bar line, moved by the music clip's `start` and `trim`, six to a sheet. Open the sheets and check the cuts and the first drop.
 <!-- /surface -->
