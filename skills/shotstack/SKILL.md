@@ -15,18 +15,18 @@ This skill loads in **terminal-based AI agents** (Claude Code, Cursor, Codex CLI
 
 ## Check versions once per session
 
-This skill is version **0.15.2** and needs `@shotstack/cli` **0.15.0** or later. Before the first `shotstack` command in a session:
+This skill is version **0.16.0** and needs `@shotstack/cli` **0.16.0** or later. Before the first `shotstack` command in a session:
 
-1. Run `shotstack --version`. If it is older than 0.15.0, tell the user: what this skill documents, such as the html5 size steps from `ingest upload --watch`, is missing until they run `npm install -g @shotstack/cli@latest`.
+1. Run `shotstack --version`. If it is older than 0.16.0, tell the user: what this skill documents, such as `inspect`, is missing until they run `npm install -g @shotstack/cli@latest`.
 2. Run `npm view @shotstack/cli version`. If it is newer than this skill's version, tell the user an update is available and ask whether to install it. Only on a yes, run `npx skills update shotstack -y` and `npm install -g @shotstack/cli@latest`. Never update without asking. `npx skills check` is not a read-only check: it installs the update.
 
 If a check fails (no network, no npm, a sandbox), skip it and carry on.
 
 **Open-ended first render? Ask before composing.** If the ask doesn't state what the video is (subject, format or destination) — e.g. "render my first video", "make me a video", "set up Shotstack" — read [`references/onboarding.md`](references/onboarding.md) and ask its discovery questions, then WAIT for answers. Do not write an Edit first. An open-ended ask is not a specification, and a stray JSON file in the project doesn't make the user experienced. Compose without asking only when the user has stated what the video is, or explicitly says to just show anything.
 
-Commands for the Shotstack video rendering API. `render` submits an Edit JSON and returns a render ID; `status` polls a render until done. `ingest` uploads your own local files (or fetches remote URLs) and hosts them so they can be referenced from an Edit. `validate` lints an Edit — run it before every render. `studio` opens an edit in the browser editor for a human to preview, tweak, and render. `template list|get|create|update|delete` reads and writes templates saved to the account: `list` shows saved templates (id + name); `get <id>` fetches a saved template's Edit JSON (e.g. one the user designed in Studio) so you can render or remix it; `create <file> --name <name>` saves an edit as a new template; `update <id> <file>` overwrites one; `delete <id>` removes one. `models` lists the generation models for prompt-driven assets and whether this key can use each one; `models <id>` prints the options a model accepts. `generate <model> "<prompt>"` generates one asset on its own and prints its URL. `analyze <url>` measures a music track's tempo, beats, bars, drops and sections, free, and needs an API key.
+Commands for the Shotstack video rendering API. `render` submits an Edit JSON and returns a render ID; `status` polls a render until done. `ingest` uploads your own local files (or fetches remote URLs) and hosts them so they can be referenced from an Edit. `validate` lints an Edit — run it before every render. `studio` opens an edit in the browser editor for a human to preview, tweak, and render. `inspect` draws an edit's frames, or a render's or a video's, at the times you give into one contact sheet, in headless Chrome, so you can look at your own work without rendering. `template list|get|create|update|delete` reads and writes templates saved to the account: `list` shows saved templates (id + name); `get <id>` fetches a saved template's Edit JSON (e.g. one the user designed in Studio) so you can render or remix it; `create <file> --name <name>` saves an edit as a new template; `update <id> <file>` overwrites one; `delete <id>` removes one. `models` lists the generation models for prompt-driven assets and whether this key can use each one; `models <id>` prints the options a model accepts. `generate <model> "<prompt>"` generates one asset on its own and prints its URL. `analyze <url>` measures a music track's tempo, beats, bars, drops and sections, free, and needs an API key.
 
-**Default loop — no API key required:** compose → `validate` (offline lint) → `studio` (browser preview). Only the API-backed commands (`render`, `status`, `ingest`, `models`, `generate`, `analyze`) need a key. Reach for `render` when you specifically need a final MP4 exported in the cloud; reach for `studio` for everything else — it is the cheapest way to see an edit and the right default for any creative a human will review.
+**Default loop — no API key required:** compose → `validate` (offline lint) → `inspect` (look at the frames yourself) → `studio` (browser preview for the human). Only the API-backed commands (`render`, `status`, `ingest`, `models`, `generate`, `analyze`) need a key. Reach for `render` when you specifically need a final MP4 exported in the cloud; reach for `studio` for everything else — it is the cheapest way to see an edit and the right default for any creative a human will review.
 
 ## Authentication
 
@@ -141,7 +141,21 @@ On headless systems (no `xdg-open`, no `$DISPLAY`) the browser launch silently n
 
 **Default to `studio` for anything non-trivial** — multi-scene, multi-track, or any creative an interested human will review. It previews client-side, costs nothing, and lets the human hit Render when it's right. Use `render` directly only for single-shot/simple edits, automated pipelines, or when told "just render it".
 
-## Four CLI rules
+## Check frames with `inspect` (no key, no credits)
+
+`shotstack inspect` loads the edit into Studio in headless Chrome and writes the frames at your times into one image, each tile labelled with its time. Open the image and look. It needs Google Chrome, or Edge or Brave on macOS and Linux; `CHROME_PATH` points it at any other Chromium-based browser. An edit or a video URL needs no key.
+
+```sh
+shotstack inspect edit.json --at 0.5,4,8.05          # one sheet, written to inspect.jpg
+shotstack inspect edit.json --bars map.json          # a tile at every bar line from `analyze --output json`
+shotstack inspect edit.json --at 3 --grid            # one still with a grid labelled in output pixels
+shotstack inspect <render-id> --at 1.2 --env stage   # frames of a finished render
+shotstack inspect https://…/clip.mp4 --at 0.5,1.8    # frames of a generated or uploaded video
+```
+
+A sheet holds six frames; more times write `inspect-1.jpg`, `inspect-2.jpg` and so on. Times past the edit's end are skipped and listed on stderr. The frames are Studio's canvas. If a render later differs from its sheet, tell the user and report it with `shotstack feedback`.
+
+## Five CLI rules
 
 1. **Pipe → `--output json`.** Default output is human-readable. When parsing programmatically or piping to another command, always pass `--output json`.
 
@@ -149,7 +163,9 @@ On headless systems (no `xdg-open`, no `$DISPLAY`) the browser launch silently n
 
 3. **Compose from `shared/agent-core.md`, then `shotstack validate`.** Its cheatsheet carries the property names, enums (transition/effect/position/fit) and rich-text fields you need — no schema download required. `shotstack validate <file>` then checks the JSON against the live schema offline and flags same-track overlaps, unloaded fonts and non-public URLs before you spend a credit. (For edge cases the full schema is at <https://shotstack.io/docs/api/api.edit.json> and the guide at <https://shotstack.io/docs/guide/llms-full.txt>.)
 
-4. **Hand off to a human via `shotstack studio <file>` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack studio file.json` (opens browser) → human reviews/tweaks → render only when right.
+4. **Look at frames before a v1 render.** Run `shotstack inspect` with a time at every cut, accent and word hit, and open the sheet: text too small, an element that never arrives, an empty scene or a caption wrapping to one word only show up in frames. Before timing anything to an event inside a generated clip, inspect the clip's URL to see when it happens. If `inspect` finds no browser, tell the user the frames couldn't be checked here and hand off with `shotstack studio <file>` instead of rendering unchecked.
+
+5. **Hand off to a human via `shotstack studio <file>` when uncertain.** Don't burn render credits iterating. Generate JSON → `shotstack studio file.json` (opens browser) → human reviews/tweaks → render only when right.
 
 ## REQUIRED: Read `shared/agent-core.md` before composing any Edit JSON
 
@@ -188,7 +204,7 @@ Authoritative sources, in order of preference:
 - <https://github.com/shotstack/oas-api-definition/tree/main/schemas> — raw OpenAPI YAML, source of truth for property names and enums
 - <https://shotstack.io/docs/guide/> — interactive HTML docs and guides
 - <https://shotstack.io/docs/api/> — interactive HTML API reference
-- <https://github.com/shotstack/shotstack-cli> — CLI source
+- <https://github.com/shotstack/shotstack-cli> — this skill, and where `shotstack feedback` files issues
 
 This skill ships sub-references for the gnarly bits:
 
