@@ -15,7 +15,7 @@ This skill loads in **terminal-based AI agents** (Claude Code, Cursor, Codex CLI
 
 ## Check versions once per session
 
-This skill is version **0.16.1** and needs `@shotstack/cli` **0.16.0** or later. Before the first `shotstack` command in a session:
+This skill is version **0.16.2** and needs `@shotstack/cli` **0.16.0** or later. Before the first `shotstack` command in a session:
 
 1. Run `shotstack --version`. If it is older than 0.16.0, tell the user: what this skill documents, such as `inspect`, is missing until they run `npm install -g @shotstack/cli@latest`.
 2. Run `npm view @shotstack/cli version`. If it is newer than this skill's version, tell the user an update is available and ask whether to install it. Only on a yes, run `npx skills update shotstack -y` and `npm install -g @shotstack/cli@latest`. Never update without asking. `npx skills check` is not a read-only check: it installs the update.
@@ -214,7 +214,7 @@ This skill ships sub-references for the gnarly bits:
 - [`references/positioning.md`](references/positioning.md) — coordinate model, `position`/`offset` (fraction of frame, +y up), clip bounding box & `fit`, text sizing, transform order
 - [`references/caption.md`](references/caption.md) — sizing per resolution, default style, the 5 named presets, alias pattern (asset type: `rich-caption`)
 - [`references/svg.md`](references/svg.md) — required attrs, supported elements
-- [`references/motion.md`](references/motion.md) — what moves on each layer (transitions, effects, keyframes, rich-text animation, `html5`), the easing available, GSAP/CSS recipes, and the brand kit through merge fields
+- [`references/motion.md`](references/motion.md) — what moves on each layer (transitions, effects, keyframes, rich-text animation, `html5`), which layer to use when, the easing available, and GSAP/CSS recipes
 - [`references/html5.md`](references/html5.md) — HTML5 asset: fields, preloaded libs (GSAP and its plugins, d3, anime, lottie), browser harness and seek rules, 3D, sizing, worked examples
 - [`references/html5-effects.md`](references/html5-effects.md) — **the creative palette**: every effect an `html5` clip can do, by common motion-design name (per-character text, stroke write-ons, mattes, blend modes, noise displacement, speed ramps, 2.5D camera, particles), with one-line recipes and what to avoid. Read before designing an `html5` clip.
 - [`references/html5-snippets.md`](references/html5-snippets.md) — copy-paste motion-graphic clips: kinetic headline, value reveal, shine sweep, pulsing CTA, film grain

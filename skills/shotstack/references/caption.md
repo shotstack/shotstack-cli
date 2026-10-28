@@ -212,7 +212,7 @@ If none of the five presets fits, copy the closest preset and modify. The proper
 | Group | Properties |
 |---|---|
 | `font` | `family`, `size`, `color`, `opacity`, `weight` |
-| `animation` | `style`: `fade`, `slide`, `highlight`, `pop`. `direction` for slide: `up`, `down`, `left`, `right`. |
+| `animation` | `style`: `karaoke`, `highlight`, `pop`, `fade`, `slide`, `bounce`, `typewriter`, `none`. `direction` for slide, the way words travel: `up`, `down`, `left`, `right`. |
 | `border` | `width`, `color`, `opacity`, `radius` |
 | `padding` | `top`, `right`, `bottom`, `left` (numbers) |
 | `stroke` | `width`, `color`, `opacity` (text outline) |
