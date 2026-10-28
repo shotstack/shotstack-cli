@@ -87,7 +87,7 @@ Clips on the same track must not have overlapping `start`/`length` ranges — ov
 ]
 ```
 
-Sequential clips (one finishes, the next starts) **can** share a track — `"start": "auto"` chains them. A cross-fade needs two tracks with a small time overlap and a `transition` on each.
+Sequential clips (one finishes, the next starts) **can** share a track — `"start": "auto"` chains them. A cross-fade needs two tracks: start the incoming clip on the track above `d` seconds before the outgoing clip ends, with a `transition.in` lasting `d` (`fade` 1 s, `fadeFast` 0.5 s, `fadeSlow` 2 s), and leave the outgoing clip at full opacity.
 
 <!-- surface:cli -->
 **Validate before you render:** `shotstack validate <file>` catches same-track overlaps — plus unloaded fonts, non-public `src` URLs, and wrong property names/enums — offline, no API key, no credits.
@@ -133,18 +133,18 @@ Compose from this rather than round-tripping the full schema — these are the v
 }
 ```
 
-`align.horizontal` = `left|center|right`; `align.vertical` = `top|middle|bottom` (**not** `center`). `animation.preset` = `fadeIn` `slideIn` `typewriter` `ascend` `shift` `movingLetters`; `animation.style` = `character|word`; `animation.direction` = `left|right|up|down`. Give the clip a `width`/`height` box so text wraps and aligns where you expect.
+`align.horizontal` = `left|center|right`; `align.vertical` = `top|middle|bottom` (**not** `center`). `animation.preset` = `fadeIn` `slideIn` `typewriter` `ascend` `shift` `movingLetters`; `animation.style` = `character|word`; `animation.direction` = `left|right|up|down`, the way the text travels. Give the clip a `width`/`height` box so text wraps and aligns where you expect.
 
 For motion beyond this (kinetic type, value reveals, shine sweeps, grain, pulsing CTAs) reach for `html5` — see [`references/html5-snippets.md`](../references/html5-snippets.md).
 
 ## Motion
 
-Timing, easing and rhythm are yours to design. Built-in motion takes fixed options from the schema; `html5` takes any seekable animation. Detail and recipes in [`references/motion.md`](../references/motion.md).
+Timing, easing and rhythm are yours to design. Built-in motion takes fixed options from the schema; `html5` takes any seekable animation. Which layer to use when, detail and recipes in [`references/motion.md`](../references/motion.md).
 
 - **Seconds, not frames:** convert frame-based specs with `output.fps`.
-- **Clip level, fixed options:** `transition` in/out (engine-fixed timing, `Slow`/`Fast` variants), `effect` (Ken Burns drift) and keyframe tweens on `scale`, `opacity`, `offset`, `rotate`, `skew`, `volume` and `speed` (see Keyframes above). Keyframe `interpolation` is `linear`, `bezier` or `constant`, and `easing` comes from a fixed list (`easeOutCubic`, `easeInOutBack`, …).
-- **Combining on an existing asset:** keyframes move the whole clip while a `rich-text` preset animates the text inside it, so animate each property one way per clip. Keyframe `scale` multiplies `fit`, so a large scale on a low-resolution source shows its pixels.
-- **rich-text `animation`** is entrance-only (exits use the clip `transition.out`) with engine-fixed easing. `style` works only on `typewriter`/`shift`; `direction` is required for `slideIn`/`ascend`/`shift`/`movingLetters`.
+- **Clip level, fixed options:** `transition` in/out (fixed timing inside the clip, `Slow`/`Fast` variants except `zoom`), `effect` (Ken Burns drift) and keyframe tweens on `scale`, `opacity`, `offset`, `rotate`, `skew`, `volume` and `speed` (see Keyframes above). Keyframe `interpolation` is `linear`, `bezier` or `constant`, and `easing` comes from a fixed list (`easeOutCubic`, `easeInOutBack`, …).
+- **Combining on an existing asset:** keyframes move the whole clip while a `rich-text` preset animates the text inside it, and effects and transitions write over keyframes on the same property, so animate each property one way per clip. Keyframe `scale` multiplies `fit`, so a large scale on a low-resolution source shows its pixels.
+- **rich-text `animation`** is an entrance with fixed easing (exits use the clip `transition.out`), except `movingLetters`, which ripples for the whole clip. `style` staggers `fadeIn`, `slideIn`, `typewriter` and `shift`; `direction` is optional.
 - **`html5`** gives full control: any seekable GSAP, anime.js, Lottie or CSS animation, any easing, per-element timing.
 - **To music:** measure the track before timing anything to it, then write cuts and motion in bars. Method in [`references/beat-sync.md`](../references/beat-sync.md).
 - **Brand once:** palette and font as top-level `merge[]` fields (`{{ink}}`, `{{accent}}`, `{{font}}`) resolve inside `html5` `html`/`css`/`js` too, so one edit re-skins the whole video.

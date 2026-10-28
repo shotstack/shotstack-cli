@@ -48,7 +48,7 @@ The reference entrance: opacity, blur and a 16 px rise settle **together** off o
 }
 ```
 
-`base` (0.6 s) entrance on `power3.out`, then a `hold` (1.5 s) settle. Swap `{{title}}` via top-level `merge[]`. `Clash Display` falls back to `system-ui` unless you load it, from an ingested font's URL or a `data:` `@font-face` (see Fonts above).
+A 0.6 s entrance on `power3.out`, then a 1.5 s hold. Swap `{{title}}` via top-level `merge[]`. `Clash Display` falls back to `system-ui` unless you load it, from an ingested font's URL or a `data:` `@font-face` (see Fonts above).
 
 ---
 
@@ -100,7 +100,7 @@ Bake the final value into the HTML and reveal it with opacity + blur + rise. The
 }
 ```
 
-`slow` (0.8 s) reveal on `power3.out` (a decelerating settle reads right for a value), then a `hold`. Swap `395` for any value at generation time; for thousands separators format the string before baking it (`$63,642` not `63642`). Pair with a static label on an adjacent `rich-text` track ("FROM", "AUD").
+A 0.8 s reveal on `power3.out` (a decelerating settle reads right for a value), then a hold. Swap `395` for any value at generation time; for thousands separators format the string before baking it (`$63,642` not `63642`). Pair with a static label on an adjacent `rich-text` track ("FROM", "AUD").
 
 ---
 
@@ -108,7 +108,7 @@ Bake the final value into the HTML and reveal it with opacity + blur + rise. The
 
 **Category** graphics (emphasis) · **Use when** adding premium gloss to a product name, logo or card · **Canvas** 860×280 · **Tags** shine, gloss, emphasis, specular
 
-A specular highlight slides across text — premium product gloss. *Continuous* motion (the sweep itself), so it uses `ease-in-out` over `slower` (1.0 s), not an entrance token. Pure CSS keyframe (WAAPI-seekable). Put this clip **above** the thing it shines on, or wrap the content in the same clip.
+A specular highlight slides across text — premium product gloss. *Continuous* motion (the sweep itself), so it uses `ease-in-out` over 1.0 s. Pure CSS keyframe (WAAPI-seekable). Put this clip **above** the thing it shines on, or wrap the content in the same clip.
 
 ```json
 {
