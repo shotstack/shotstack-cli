@@ -15,9 +15,9 @@ This skill loads in **terminal-based AI agents** (Claude Code, Cursor, Codex CLI
 
 ## Check versions once per session
 
-This skill is version **0.16.2** and needs `@shotstack/cli` **0.16.0** or later. Before the first `shotstack` command in a session:
+This skill is version **0.17.0** and needs `@shotstack/cli` **0.17.0** or later. Before the first `shotstack` command in a session:
 
-1. Run `shotstack --version`. If it is older than 0.16.0, tell the user: what this skill documents, such as `inspect`, is missing until they run `npm install -g @shotstack/cli@latest`.
+1. Run `shotstack --version`. If it is older than 0.17.0, tell the user: what this skill documents, such as `inspect --merge`, is missing until they run `npm install -g @shotstack/cli@latest`.
 2. Run `npm view @shotstack/cli version`. If it is newer than this skill's version, tell the user an update is available and ask whether to install it. Only on a yes, run `npx skills update shotstack -y` and `npm install -g @shotstack/cli@latest`. Never update without asking. `npx skills check` is not a read-only check: it installs the update.
 
 If a check fails (no network, no npm, a sandbox), skip it and carry on.
