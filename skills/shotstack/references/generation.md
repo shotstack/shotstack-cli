@@ -62,7 +62,19 @@ Speech length is not knowable in advance. Set the clip's `length` to `"auto"` an
 
 ## Music
 
-**Eleven Music.** A prompt answers genre, mood, instrumentation, tempo and production era whether or not you intend it to. Whatever you leave out, the model chooses.
+Two models: **Lyria 3.5** and **Eleven Music**. Run `shotstack models` for the current ids and rates. Start with Lyria, which costs the same per song at any length. Use Eleven Music when the track must run to an exact length, must be guaranteed instrumental, or needs a composition plan.
+
+### Lyria 3.5
+
+**The prompt is the only input.** There is no instrumental flag, composition plan or negative prompt. Ask for an instrumental in the prompt; nothing guarantees one.
+
+**The clip sets the length, between one and three minutes.** In that range the track lands within a few seconds of the clip, sometimes short of it. A shorter clip still gets a track of about a minute, cut where the clip ends. With no length, the model picks its own.
+
+**Generate it first for a short video, or one whose length is still open.** Measure the track and let it shape the edit, ending on a section change rather than wherever the clip runs out: see [`beat-sync.md`](beat-sync.md). A `prompt` clip with `length: "end"` also works, since the track is generated once the timeline's length is known.
+
+### Eleven Music
+
+A prompt answers genre, mood, instrumentation, tempo and production era whether or not you intend it to. Whatever you leave out, the model chooses.
 
 **Production vocabulary does real work** — "dusty", "vinyl crackle", "sparse", "ethereal". Naming a key helps, less reliably.
 

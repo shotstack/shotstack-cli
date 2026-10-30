@@ -216,7 +216,7 @@ Top-level `merge[]` (sibling of `timeline`/`output`, NOT a clip property) is a s
 **Checking merge results:** pass `?data=true&merged=true` on the status request to see the merged Edit JSON in the response — useful for debugging unresolved placeholders.
 
 <!-- surface:cli -->
-**Validate caveat:** `shotstack validate` checks `html5` JS syntax **before** merge resolution. A `{{TOKEN}}` inside a JS string literal (e.g. `color: "{{ACCENT}}"`) is valid JS and passes. A `{{TOKEN}}` in JS *code* position (not inside a string) may fail validation pre-merge but work at render time post-merge — keep merge fields inside string literals to avoid false positives.
+**Checking a template:** `validate`, `inspect` and `studio` apply `merge[]` first, so a `{{PHOTO}}` source is checked and drawn as its value. Try other values with `--merge PHOTO=<url>` (repeatable) or `--merge values.json` (a `merge[]` array, for numbers). `studio` keeps them as merge fields.
 <!-- /surface -->
 
 ## Asset types
