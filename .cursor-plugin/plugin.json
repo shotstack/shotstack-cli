@@ -1,0 +1,14 @@
+{
+  "name": "shotstack",
+  "displayName": "Shotstack",
+  "version": "1.0.0",
+  "description": "Compose, preview and render videos with the Shotstack cloud video editing API.",
+  "author": { "name": "Shotstack", "email": "jesus@shotstack.io" },
+  "homepage": "https://shotstack.io/docs/guide/agents/mcp-server/",
+  "repository": "https://github.com/shotstack/shotstack-cli",
+  "license": "Apache-2.0",
+  "logo": "assets/logo.png",
+  "keywords": ["video", "video editing", "render", "templates", "media"],
+  "category": "integrations",
+  "mcpServers": "./mcp.json"
+}
